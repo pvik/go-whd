@@ -18,11 +18,11 @@ func (rt RequestType) String() string {
 	return rt.Name
 }
 
-func GetRequestTypeList(uri string, user User, result *map[int]RequestType) error {
+func GetRequestTypeList(uri string, user User, result map[int]RequestType) error {
 	limit := 75
 
 	resMap := make(map[int][]byte)
-	if err := getResourceList(uri, user, "RequestTypes", limit, map[string]string{"list": "all"}, &resMap); err != nil {
+	if err := getResourceList(uri, user, "RequestTypes", limit, map[string]string{"list": "all"}, resMap); err != nil {
 		log.Printf("error retrieving resource list: %s\n", err)
 		return err
 	}
@@ -38,14 +38,14 @@ func GetRequestTypeList(uri string, user User, result *map[int]RequestType) erro
 		// log.Printf("pg: %d | str: %s\n", pg, string(data))
 		// log.Printf("unmarshalled: %+v\n", l)
 		for _, rt := range l {
-			(*result)[rt.Id] = rt
+			result[rt.Id] = rt
 		}
 	}
 
 	return nil
 }
 
-func GetStatusTypeList(uri string, user User, list *map[int]string) error {
+func GetStatusTypeList(uri string, user User, list map[int]string) error {
 	limit := 50
 
 	resMap := make([]interface{}, 0, limit)
@@ -58,7 +58,7 @@ func GetStatusTypeList(uri string, user User, list *map[int]string) error {
 	return nil
 }
 
-func GetCustomFieldList(uri string, user User, list *map[int]string) error {
+func GetCustomFieldList(uri string, user User, list map[int]string) error {
 	limit := 50
 
 	resMap := make([]interface{}, 0, limit)
@@ -71,7 +71,7 @@ func GetCustomFieldList(uri string, user User, list *map[int]string) error {
 	return nil
 }
 
-func GetLocationList(uri string, user User, list *map[int]string) error {
+func GetLocationList(uri string, user User, list map[int]string) error {
 	limit := 250
 
 	resMap := make([]interface{}, 0, limit)
@@ -84,7 +84,7 @@ func GetLocationList(uri string, user User, list *map[int]string) error {
 	return nil
 }
 
-func GetPriorityTypeList(uri string, user User, list *map[int]string) error {
+func GetPriorityTypeList(uri string, user User, list map[int]string) error {
 	limit := 10
 
 	resMap := make([]interface{}, 0, limit)
@@ -97,14 +97,14 @@ func GetPriorityTypeList(uri string, user User, list *map[int]string) error {
 	return nil
 }
 
-func parseResourceListMap(idLabel string, valueLabel string, resMap *[]interface{}, list *map[int]string) {
+func parseResourceListMap(idLabel string, valueLabel string, resMap *[]interface{}, list map[int]string) {
 	for _, data := range *resMap {
 		v := data.(map[string]interface{})
-		(*list)[int(v[idLabel].(float64))] = v[valueLabel].(string)
+		list[int(v[idLabel].(float64))] = v[valueLabel].(string)
 	}
 }
 
-func getResourceList(uri string, user User, resource string, limit int, params map[string]string, result *map[int][]byte) error {
+func getResourceList(uri string, user User, resource string, limit int, params map[string]string, result map[int][]byte) error {
 	tmp := make([]interface{}, limit, limit)
 
 	for pg := 1; len(tmp) == limit; pg++ {
@@ -119,7 +119,7 @@ func getResourceList(uri string, user User, resource string, limit int, params m
 			log.Println("error unmarshalling: ", err)
 			return err
 		}
-		(*result)[pg] = data
+		result[pg] = data
 	}
 
 	return nil
