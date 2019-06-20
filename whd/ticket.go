@@ -15,12 +15,12 @@ type ProblemType struct {
 }
 
 type CustomField struct {
-	CustomFieldId int         `json:"definitionId"`
-	Value         interface{} `json:"restValue"`
+	Id    int         `json:"definitionId"`
+	Value interface{} `json:"restValue"`
 }
 
 type Note struct {
-	NoteId         int `json:"id"`
+	Id             int `json:"id"`
 	Date           time.Time
 	MobileNoteText string
 }
