@@ -9,6 +9,22 @@ import (
 	"time"
 )
 
+type ProblemType struct {
+	Id   int
+	Name string `json:"detailDisplayName"`
+}
+
+type CustomField struct {
+	CustomFieldId int         `json:"definitionId"`
+	Value         interface{} `json:"restValue"`
+}
+
+type Note struct {
+	NoteId         int `json:"id"`
+	Date           time.Time
+	MobileNoteText string
+}
+
 type Ticket struct {
 	Id             int
 	Detail         string
@@ -17,19 +33,9 @@ type Ticket struct {
 	LocationId     int
 	StatusTypeId   int
 	PriorityTypeId int
-	ProblemType    struct {
-		Id   int
-		Name string `json:"detailDisplayName"`
-	}
-	CustomFields []struct {
-		CustomFieldId int         `json:"definitionId"`
-		Value         interface{} `json:"restValue"`
-	} `json:"ticketCustomFields"`
-	Notes []struct {
-		NoteId         int `json:"id"`
-		Date           time.Time
-		MobileNoteText string
-	}
+	ProblemType    ProblemType
+	CustomFields   []CustomField `json:"ticketCustomFields"`
+	Notes          []Note
 }
 
 func GetTicket(uri string, user User, id int, ticket *Ticket) error {
