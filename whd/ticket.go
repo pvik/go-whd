@@ -3,6 +3,7 @@ package whd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -93,17 +94,18 @@ func createTicket(uri string, user User, ticketJsonStr []byte) (int, error) {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+	defer resp.Body.Close()
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
 	}
 
 	data, _ := ioutil.ReadAll(resp.Body)
-
+	log.Println("Data:", string(data))
 	var ticket Ticket
 	if err = json.Unmarshal(data, &ticket); err != nil {
-		log.Println("error unmarshalling: ", err)
-		return 0, err
+		log.Printf("error unmarshalling: %s\n%s", string(data), err)
+		return 0, fmt.Errorf("Error: %v\n", string(data))
 	}
 
 	return ticket.Id, nil
@@ -129,8 +131,8 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte) (int, err
 
 	var ticket Ticket
 	if err = json.Unmarshal(data, &ticket); err != nil {
-		log.Println("error unmarshalling: ", err)
-		return 0, err
+		log.Printf("error unmarshalling: %s\n%s", string(data), err)
+		return 0, fmt.Errorf("Error: %v\n", string(data))
 	}
 
 	return ticket.Id, nil
