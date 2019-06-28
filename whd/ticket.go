@@ -17,6 +17,21 @@ type ProblemType struct {
 	Name string `json:"detailDisplayName,omitempty"`
 }
 
+type Location struct {
+	Id   int    `json:"id,omitempty"`
+	Type string `json:"type,omitempty"`
+}
+
+type PriorityType struct {
+	Id   int    `json:"id,omitempty"`
+	Type string `json:"type,omitempty"`
+}
+
+type StatusType struct {
+	Id   int    `json:"id,omitempty"`
+	Type string `json:"type,omitempty"`
+}
+
 type CustomField struct {
 	Id    int         `json:"definitionId"`
 	Value interface{} `json:"restValue"`
@@ -30,13 +45,16 @@ type Note struct {
 
 type Ticket struct {
 	Id             int           `json:"id,omitempty"`
-	Detail         string        `json:"detail"`
-	Subject        string        `json:"subject"`
-	LastUpdated    time.Time     `json:"lastUpdated"`
-	LocationId     int           `json:"locationId"`
-	StatusTypeId   int           `json:"statusTypeId"`
-	PriorityTypeId int           `json:"priorityTypeId"`
-	ProblemType    ProblemType   `json:"problemtype"`
+	Detail         string        `json:"detail,omitempty"`
+	Subject        string        `json:"subject,omitempty"`
+	LastUpdated    time.Time     `json:"lastUpdated,omitempty"`
+	LocationId     int           `json:"locationId,omitempty"`
+	Location       Location      `json:"location,omitempty"`
+	StatusTypeId   int           `json:"statusTypeId,omitempty"`
+	StatusType     StatusType    `json:"statustype,omitempty"`
+	PriorityTypeId int           `json:"priorityTypeId,omitempty"`
+	PriorityType   PriorityType  `json:"prioritytype,omitempty"`
+	ProblemType    ProblemType   `json:"problemtype,omitempty"`
 	CustomFields   []CustomField `json:"ticketCustomFields,omitempty"`
 	Notes          []Note        `json:"notes,omitempty"`
 }
@@ -68,6 +86,28 @@ func GetTicket(uri string, user User, id int, ticket *Ticket) error {
 
 func CreateUpdateTicket(uri string, user User, whdTicket Ticket) (int, error) {
 	whdTicketMap := make(map[string]interface{})
+
+	if whdTicket.LocationId != 0 {
+		whdTicket.Location = Location{
+			Id:   whdTicket.LocationId,
+			Type: "Location",
+		}
+	}
+
+	if whdTicket.PriorityTypeId != 0 {
+		whdTicket.PriorityType = PriorityType{
+			Id:   whdTicket.PriorityTypeId,
+			Type: "PriorityType",
+		}
+	}
+
+	if whdTicket.StatusTypeId != 0 {
+		whdTicket.StatusType = StatusType{
+			Id:   whdTicket.StatusTypeId,
+			Type: "StatusType",
+		}
+	}
+
 	interim, _ := json.Marshal(whdTicket)
 	json.Unmarshal(interim, &whdTicketMap)
 
@@ -75,7 +115,21 @@ func CreateUpdateTicket(uri string, user User, whdTicket Ticket) (int, error) {
 	whdTicketMap["customFields"] = whdTicketMap["ticketCustomFields"]
 	delete(whdTicketMap, "ticketCustomFields")
 
+	if whdTicket.ProblemType.Id == 0 {
+		delete(whdTicketMap, "problemtype")
+	}
+	if whdTicket.Location.Id == 0 {
+		delete(whdTicketMap, "location")
+	}
+	if whdTicket.PriorityTypeId == 0 {
+		delete(whdTicketMap, "prioritytype")
+	}
+	if whdTicket.StatusTypeId == 0 {
+		delete(whdTicketMap, "statustype")
+	}
+
 	ticketJsonStr, _ := json.Marshal(whdTicketMap)
+	log.Printf("JSON Sent to WHD: %s", ticketJsonStr)
 	if whdTicket.Id == 0 {
 		return createTicket(uri, user, []byte(ticketJsonStr))
 	} else {
