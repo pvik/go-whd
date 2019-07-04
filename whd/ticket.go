@@ -38,9 +38,14 @@ type CustomField struct {
 }
 
 type Note struct {
-	Id             int       `json:"id"`
-	Date           time.Time `json:"date"`
-	MobileNoteText string    `json:"mobileNoteText`
+	Id             int       `json:"id,omitempty"`
+	Date           time.Time `json:"date,omitempty"`
+	MobileNoteText string    `json:"mobileNoteText,omitempty` // Used for reading notes FROM whd
+	NoteText       string    `json:notetext,omitempty`        // Used to Create note TO whd
+	JobTicket      struct {
+		Id   int    `json:id,omitempty`
+		Type string `json:type,omitempty`
+	} `json:jobticket,omitempty`
 }
 
 type Ticket struct {
@@ -57,6 +62,40 @@ type Ticket struct {
 	ProblemType    ProblemType   `json:"problemtype,omitempty"`
 	CustomFields   []CustomField `json:"ticketCustomFields,omitempty"`
 	Notes          []Note        `json:"notes,omitempty"`
+}
+
+func CreateNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
+	var note Note
+	note.JobTicket.Id = whdTicketId
+	note.JobTicket.Type = "JobTicket"
+	note.NoteText = noteTxt
+
+	noteJsonStr, _ := json.Marshal(note)
+	log.Printf("JSON Sent to WHD: %s", noteJsonStr)
+	req, err := http.NewRequest("POST", uri+urn+"TechNotes", bytes.NewBuffer(noteJsonStr))
+	if err != nil {
+		return 0, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	WrapAuth(req, user)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return 0, err
+	}
+
+	data, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Data:", string(data))
+	if err = json.Unmarshal(data, &note); err != nil {
+		log.Printf("Error unmarshalling response for create note: %s\n%s", string(data), err)
+		return 0, fmt.Errorf("Error unmarshalling response for create note: %v\n", string(data))
+	}
+
+	return note.Id, nil
 }
 
 func GetTicket(uri string, user User, id int, ticket *Ticket) error {
