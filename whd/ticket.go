@@ -40,12 +40,12 @@ type CustomField struct {
 type Note struct {
 	Id             int       `json:"id,omitempty"`
 	Date           time.Time `json:"date,omitempty"`
-	MobileNoteText string    `json:"mobileNoteText,omitempty` // Used for reading notes FROM whd
-	NoteText       string    `json:notetext,omitempty`        // Used to Create note TO whd
+	MobileNoteText string    `json:"mobileNoteText,omitempty"` // Used for reading notes FROM whd
+	NoteText       string    `json:"notetext,omitempty"`       // Used to Create note TO whd
 	JobTicket      struct {
-		Id   int    `json:id,omitempty`
-		Type string `json:type,omitempty`
-	} `json:jobticket,omitempty`
+		Id   int    `json:"id,omitempty"`
+		Type string `json:"type,omitempty"`
+	} `json:"jobticket,omitempty"`
 }
 
 type Ticket struct {
