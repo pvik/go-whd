@@ -2,6 +2,7 @@ package whd
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -48,6 +49,14 @@ type Note struct {
 	} `json:"jobticket,omitempty"`
 }
 
+type Attachment struct {
+	Id            int       `json:"id,omitempty"`
+	Type          string    `json:"type,omitempty"`
+	FileName      string    `json:"fileName,omitempty"`
+	SizeString    string    `json:"sizeString,omitempty"`
+	UploadDateUtc time.Time `json:"uploadDateUtc,omitempty`
+}
+
 type Ticket struct {
 	Id             int           `json:"id,omitempty"`
 	Detail         string        `json:"detail,omitempty"`
@@ -62,6 +71,7 @@ type Ticket struct {
 	ProblemType    ProblemType   `json:"problemtype,omitempty"`
 	CustomFields   []CustomField `json:"ticketCustomFields,omitempty"`
 	Notes          []Note        `json:"notes,omitempty"`
+	Attachments    []Attachment  `json:"attachments,omitempty"`
 }
 
 func CreateNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
@@ -229,4 +239,34 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte) (int, err
 	}
 
 	return ticket.Id, nil
+}
+
+func GetAttachment(uri string, user User, attachmentId int) ([]byte, error) {
+	req, err := http.NewRequest("GET", uri+urn+"TicketAttachments/"+strconv.Itoa(attachmentId), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	WrapAuth(req, user)
+	req.Header.Set("accept", "application/octet")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return nil, err
+	}
+
+	data, _ := ioutil.ReadAll(resp.Body)
+
+	return data, nil
+}
+
+func GetAttachmentAsBase64(uri string, user User, attachmentId int) (string, error) {
+	data, err := GetAttachment(uri, user, attachmentId)
+	if err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(data), nil
 }
