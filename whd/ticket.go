@@ -5,9 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"net/http/cookiejar"
+	"os"
 	"strconv"
 	"time"
 )
@@ -39,12 +43,13 @@ type CustomField struct {
 }
 
 type Note struct {
-	Id             int          `json:"id,omitempty"`
-	Date           time.Time    `json:"date,omitempty"`
-	MobileNoteText string       `json:"mobileNoteText,omitempty"` // Used for reading notes FROM whd
-	NoteText       string       `json:"notetext,omitempty"`       // Used to Create note TO whd
-	Attachments    []Attachment `json:"attachments,omitempty"`
-	JobTicket      struct {
+	Id                  int          `json:"id,omitempty"`
+	Date                time.Time    `json:"date,omitempty"`
+	MobileNoteText      string       `json:"mobileNoteText,omitempty"` // Used for reading notes FROM whd
+	PrettyUpdatedString string       `json:"prettyUpdatedString,omitempty"`
+	NoteText            string       `json:"notetext,omitempty"` // Used to Create note TO whd
+	Attachments         []Attachment `json:"attachments,omitempty"`
+	JobTicket           struct {
 		Id   int    `json:"id,omitempty"`
 		Type string `json:"type,omitempty"`
 	} `json:"jobticket,omitempty"`
@@ -269,4 +274,115 @@ func GetAttachmentAsBase64(uri string, user User, attachmentId int) (string, err
 	}
 
 	return base64.StdEncoding.EncodeToString(data), nil
+}
+
+func UploadAttachment(uri string, user User, ticketId int, filename string, filedata []byte) (int, error) {
+	cookieJar, _ := cookiejar.New(nil)
+
+	// get session key to get JSESSIONID and wosid
+	req, err := http.NewRequest("GET", uri+urn+"Session", nil)
+	if err != nil {
+		return 0, err
+	}
+	req.Header.Set("accept", "application/json")
+	WrapAuth(req, user)
+
+	client := &http.Client{
+		Jar: cookieJar,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return 0, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("error getting session key: bad status: %s", resp.Status)
+	}
+
+	data, _ := ioutil.ReadAll(resp.Body)
+	var dataMap map[string]interface{}
+	if err := json.Unmarshal(data, &dataMap); err != nil {
+		log.Println("error unmarshalling: ", err)
+		return 0, err
+	}
+
+	sessionKey, ok := dataMap["sessionKey"].(string)
+	if !ok {
+		log.Println("invalid sessionKey in map")
+		return 0, err
+	}
+
+	// Upload attachment
+	cookies := cookieJar.Cookies(req.URL)
+	log.Printf("Cookies: %+v", cookies)
+	cookies = append(cookies, &http.Cookie{
+		Name:   "wosid",
+		Value:  sessionKey,
+		Path:   "/helpdesk",
+		Domain: req.URL.Host,
+	})
+
+	// Prepare a form that you will submit to that URL.
+	// save file
+	err = ioutil.WriteFile(filename, filedata, 0644)
+	if err != nil {
+		log.Println("unable to save file")
+		return 0, err
+	}
+	r, err := os.Open(filename)
+	if err != nil {
+		log.Println("unable to read file")
+		return 0, err
+	}
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	var fw io.Writer
+	if fw, err = w.CreateFormFile("file", r.Name()); err != nil {
+		log.Println("unable to set file to post request form")
+		return 0, err
+	}
+	if _, err = io.Copy(fw, r); err != nil {
+		log.Println("unable to set file to post request form")
+		return 0, err
+	}
+
+	// Don't forget to close the multipart writer.
+	// If you don't close it, your request will be missing the terminating boundary.
+	w.Close()
+
+	req2, err := http.NewRequest("POST", fmt.Sprintf("%s/helpdesk/attachment/upload?type=jobTicket&entityId=%d", uri, ticketId), &b)
+	if err != nil {
+		return 0, err
+	}
+	req2.Header.Set("accept", "application/json")
+	req2.Header.Set("Pragma", "no-cache")
+	req2.Header.Set("Connection", "keep-alive")
+	// Don't forget to set the content type, this will contain the boundary.
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	resp2, err := client.Do(req2)
+	if err != nil {
+		log.Printf("The HTTP request failed when uploading attachment: %s\n", err)
+		return 0, err
+	}
+
+	if resp2.StatusCode != http.StatusOK {
+		err = fmt.Errorf("error uploading attachment: bad status: %s", resp2.Status)
+	}
+
+	data2, _ := ioutil.ReadAll(resp2.Body)
+	var dataMap2 map[string]interface{}
+	if err := json.Unmarshal(data2, &dataMap2); err != nil {
+		log.Println("error unmarshalling att upload response: ", err)
+		return 0, err
+	}
+
+	attId, ok := dataMap["id"].(int)
+	if !ok {
+		log.Println("invalid attachment id in map")
+		return 0, err
+	}
+
+	return attId, nil
 }
