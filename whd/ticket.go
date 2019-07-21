@@ -47,7 +47,7 @@ type Note struct {
 	Date                time.Time    `json:"date,omitempty"`
 	MobileNoteText      string       `json:"mobileNoteText,omitempty"` // Used for reading notes FROM whd
 	PrettyUpdatedString string       `json:"prettyUpdatedString,omitempty"`
-	NoteText            string       `json:"notetext,omitempty"` // Used to Create note TO whd
+	NoteText            string       `json:"noteText,omitempty"` // Used to Create note TO whd
 	Attachments         []Attachment `json:"attachments,omitempty"`
 	JobTicket           struct {
 		Id   int    `json:"id,omitempty"`
