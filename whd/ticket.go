@@ -39,10 +39,11 @@ type CustomField struct {
 }
 
 type Note struct {
-	Id             int       `json:"id,omitempty"`
-	Date           time.Time `json:"date,omitempty"`
-	MobileNoteText string    `json:"mobileNoteText,omitempty"` // Used for reading notes FROM whd
-	NoteText       string    `json:"notetext,omitempty"`       // Used to Create note TO whd
+	Id             int          `json:"id,omitempty"`
+	Date           time.Time    `json:"date,omitempty"`
+	MobileNoteText string       `json:"mobileNoteText,omitempty"` // Used for reading notes FROM whd
+	NoteText       string       `json:"notetext,omitempty"`       // Used to Create note TO whd
+	Attachments    []Attachment `json:"attachments,omitempty"`
 	JobTicket      struct {
 		Id   int    `json:"id,omitempty"`
 		Type string `json:"type,omitempty"`
@@ -51,7 +52,6 @@ type Note struct {
 
 type Attachment struct {
 	Id            int       `json:"id,omitempty"`
-	Type          string    `json:"type,omitempty"`
 	FileName      string    `json:"fileName,omitempty"`
 	SizeString    string    `json:"sizeString,omitempty"`
 	UploadDateUtc time.Time `json:"uploadDateUtc,omitempty`
