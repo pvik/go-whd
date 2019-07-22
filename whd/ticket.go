@@ -86,7 +86,20 @@ func CreateNote(uri string, user User, whdTicketId int, noteTxt string) (int, er
 	note.JobTicket.Id = whdTicketId
 	note.JobTicket.Type = "JobTicket"
 	note.NoteText = noteTxt
+	note.IsHidden = false
+	return createNote(uri, user, whdTicketId, note)
+}
 
+func CreateHiddenNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
+	var note Note
+	note.JobTicket.Id = whdTicketId
+	note.JobTicket.Type = "JobTicket"
+	note.NoteText = noteTxt
+	note.IsHidden = true
+	return createNote(uri, user, whdTicketId, note)
+}
+
+func createNote(uri string, user User, whdTicketId int, note Note) (int, error) {
 	noteJsonStr, _ := json.Marshal(note)
 	log.Printf("JSON Sent to WHD: %s", noteJsonStr)
 	req, err := http.NewRequest("POST", uri+urn+"TechNotes", bytes.NewBuffer(noteJsonStr))
