@@ -324,9 +324,16 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 		Domain: req.URL.Host,
 	})
 
-	// Prepare a form that you will submit to that URL.
+	// check if tmp directory exists and create it
+	if _, err := os.Stat("tmp"); os.IsNotExist(err) {
+		err := os.Mkdir("tmp", os.ModeDir|os.ModeSetuid|os.ModeSetgid|0777)
+		if err != nil {
+			return 0, fmt.Errorf("Unable to create tmp directory to store attachments: %s", err)
+		}
+	}
+
 	// save file
-	filename = "tmp/" + filename // save in tmp directory
+	filename = filepath.FromSlash("tmp/" + filename) // save in tmp directory
 	err = ioutil.WriteFile(filename, filedata, 0644)
 	if err != nil {
 		log.Println("unable to save file")
@@ -339,6 +346,7 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 	}
 	defer file.Close()
 
+	// Prepare a form that you will submit to that URL.
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file", filepath.Base(filename))
