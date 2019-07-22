@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -325,64 +326,72 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 
 	// Prepare a form that you will submit to that URL.
 	// save file
+	filename = "tmp/" + filename // save in tmp directory
 	err = ioutil.WriteFile(filename, filedata, 0644)
 	if err != nil {
 		log.Println("unable to save file")
 		return 0, err
 	}
-	r, err := os.Open(filename)
+	file, err := os.Open(filename)
 	if err != nil {
 		log.Println("unable to read file")
 		return 0, err
 	}
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
-	var fw io.Writer
-	if fw, err = w.CreateFormFile("file", r.Name()); err != nil {
-		log.Println("unable to set file to post request form")
-		return 0, err
-	}
-	if _, err = io.Copy(fw, r); err != nil {
-		log.Println("unable to set file to post request form")
-		return 0, err
-	}
+	defer file.Close()
 
-	// Don't forget to close the multipart writer.
-	// If you don't close it, your request will be missing the terminating boundary.
-	w.Close()
-
-	req2, err := http.NewRequest("POST", fmt.Sprintf("%s/helpdesk/attachment/upload?type=jobTicket&entityId=%d", uri, ticketId), &b)
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", filepath.Base(filename))
 	if err != nil {
 		return 0, err
 	}
+	_, err = io.Copy(part, file)
+
+	err = writer.Close()
+	if err != nil {
+		return 0, err
+	}
+
+	log.Printf("Body: %+v", body)
+	req2, err := http.NewRequest("POST", fmt.Sprintf("%s/helpdesk/attachment/upload?type=jobTicket&entityId=%d", uri, ticketId), body)
+	if err != nil {
+		return 0, err
+	}
+	cookieJar.SetCookies(req2.URL, cookies)
+	client2 := &http.Client{
+		Jar: cookieJar,
+	}
+
 	req2.Header.Set("accept", "application/json")
 	req2.Header.Set("Pragma", "no-cache")
 	req2.Header.Set("Connection", "keep-alive")
 	// Don't forget to set the content type, this will contain the boundary.
-	req.Header.Set("Content-Type", w.FormDataContentType())
+	req2.Header.Set("Content-Type", writer.FormDataContentType())
 
-	resp2, err := client.Do(req2)
+	resp2, err := client2.Do(req2)
 	if err != nil {
 		log.Printf("The HTTP request failed when uploading attachment: %s\n", err)
 		return 0, err
 	}
 
-	if resp2.StatusCode != http.StatusOK {
-		err = fmt.Errorf("error uploading attachment: bad status: %s", resp2.Status)
-	}
+	// if resp2.StatusCode != http.StatusOK {
+	// 	err = fmt.Errorf("error uploading attachment: bad status: %s", resp2.Status)
+	// 	return 0, err
+	// }
 
 	data2, _ := ioutil.ReadAll(resp2.Body)
+	log.Printf("attachment upload response: %s", string(data2))
 	var dataMap2 map[string]interface{}
 	if err := json.Unmarshal(data2, &dataMap2); err != nil {
 		log.Println("error unmarshalling att upload response: ", err)
 		return 0, err
 	}
 
-	attId, ok := dataMap["id"].(int)
+	attIdFloat, ok := dataMap2["id"].(float64)
 	if !ok {
 		log.Println("invalid attachment id in map")
-		return 0, err
+		return 0, fmt.Errorf("Invalid attachment id in response")
 	}
 
-	return attId, nil
+	return int(attIdFloat), nil
 }
