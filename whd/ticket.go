@@ -50,6 +50,7 @@ type Note struct {
 	PrettyUpdatedString string       `json:"prettyUpdatedString,omitempty"`
 	NoteText            string       `json:"noteText,omitempty"` // Used to Create note TO whd
 	Attachments         []Attachment `json:"attachments,omitempty"`
+	IsHidden            bool         `json:"isHidden"`
 	JobTicket           struct {
 		Id   int    `json:"id,omitempty"`
 		Type string `json:"type,omitempty"`
