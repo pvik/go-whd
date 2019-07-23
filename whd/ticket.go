@@ -116,9 +116,10 @@ func createNote(uri string, user User, whdTicketId int, note Note) (int, error) 
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
 	}
+	defer resp.Body.Close()
 
 	data, _ := ioutil.ReadAll(resp.Body)
-	log.Println("Data:", string(data))
+	//log.Println("Data:", string(data))
 	if err = json.Unmarshal(data, &note); err != nil {
 		log.Printf("Error unmarshalling response for create note: %s\n%s", string(data), err)
 		return 0, fmt.Errorf("Error unmarshalling response for create note: %v\n", string(data))
@@ -141,6 +142,7 @@ func GetTicket(uri string, user User, id int, ticket *Ticket) error {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return err
 	}
+	defer resp.Body.Close()
 
 	data, _ := ioutil.ReadAll(resp.Body)
 
@@ -221,6 +223,7 @@ func createTicket(uri string, user User, ticketJsonStr []byte) (int, error) {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
 	}
+	defer resp.Body.Close()
 
 	data, _ := ioutil.ReadAll(resp.Body)
 	log.Println("Data:", string(data))
@@ -248,6 +251,7 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte) (int, err
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
 	}
+	defer resp.Body.Close()
 
 	data, _ := ioutil.ReadAll(resp.Body)
 
@@ -275,6 +279,7 @@ func GetAttachment(uri string, user User, attachmentId int) ([]byte, error) {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	data, _ := ioutil.ReadAll(resp.Body)
 
@@ -309,6 +314,7 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("error getting session key: bad status: %s", resp.Status)
@@ -394,6 +400,7 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 		log.Printf("The HTTP request failed when uploading attachment: %s\n", err)
 		return 0, err
 	}
+	defer resp.Body.Close()
 
 	// if resp2.StatusCode != http.StatusOK {
 	// 	err = fmt.Errorf("error uploading attachment: bad status: %s", resp2.Status)
