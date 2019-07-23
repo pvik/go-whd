@@ -112,7 +112,6 @@ func createNote(uri string, user User, whdTicketId int, note Note) (int, error) 
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
@@ -217,7 +216,7 @@ func createTicket(uri string, user User, ticketJsonStr []byte) (int, error) {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
