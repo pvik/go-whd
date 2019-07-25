@@ -332,16 +332,31 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 		log.Println("invalid sessionKey in map")
 		return 0, err
 	}
+	log.Printf("sessionKey retrieved: %s", sessionKey)
 
 	// Upload attachment
 	cookies := cookieJar.Cookies(req.URL)
+
+	for _, cookie := range resp.Cookies() {
+		if cookie.Name == "JSESSIONID" {
+			log.Printf("Add JSESSIONID cookie to request")
+			cookies = append(cookies, &http.Cookie{
+				Name:  "JSESSIONID",
+				Value: cookie.Value,
+				//Path:   "/helpdesk",
+				//Domain: host,
+			})
+		}
+	}
+
 	log.Printf("Cookies: %+v", cookies)
 	cookies = append(cookies, &http.Cookie{
-		Name:   "wosid",
-		Value:  sessionKey,
-		Path:   "/helpdesk",
-		Domain: req.URL.Host,
+		Name:  "wosid",
+		Value: sessionKey,
+		Path:  "/helpdesk",
+		//Domain: host,
 	})
+	log.Printf("Cookies with wosid: %+v", cookies)
 
 	// check if tmp directory exists and create it
 	if _, err := os.Stat("tmp"); os.IsNotExist(err) {
@@ -379,7 +394,7 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 		return 0, err
 	}
 
-	log.Printf("Body: %+v", body)
+	//log.Printf("Body: %+v", body)
 	req2, err := http.NewRequest("POST", fmt.Sprintf("%s/helpdesk/attachment/upload?type=jobTicket&entityId=%d", uri, ticketId), body)
 	if err != nil {
 		return 0, err
