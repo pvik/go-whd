@@ -296,6 +296,14 @@ func GetAttachmentAsBase64(uri string, user User, attachmentId int) (string, err
 }
 
 func UploadAttachment(uri string, user User, ticketId int, filename string, filedata []byte) (int, error) {
+	return UploadAttachmentToEntity(uri, user, "jobTicket", ticketId, filename, filedata)
+}
+
+func UploadAttachmentToNote(uri string, user User, noteId int, filename string, filedata []byte) (int, error) {
+	return UploadAttachmentToEntity(uri, user, "techNote", noteId, filename, filedata)
+}
+
+func UploadAttachmentToEntity(uri string, user User, entity string, entityId int, filename string, filedata []byte) (int, error) {
 	cookieJar, _ := cookiejar.New(nil)
 
 	// get session key to get JSESSIONID and wosid
@@ -395,7 +403,7 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 	}
 
 	//log.Printf("Body: %+v", body)
-	req2, err := http.NewRequest("POST", fmt.Sprintf("%s/helpdesk/attachment/upload?type=jobTicket&entityId=%d", uri, ticketId), body)
+	req2, err := http.NewRequest("POST", fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&entityId=%d", uri, entity, entityId), body)
 	if err != nil {
 		return 0, err
 	}
