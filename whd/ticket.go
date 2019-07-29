@@ -39,8 +39,8 @@ type StatusType struct {
 }
 
 type CustomField struct {
-	Id    int         `json:"definitionId"`
-	Value interface{} `json:"restValue"`
+	Id    int    `json:"definitionId"`
+	Value string `json:"restValue"`
 }
 
 type Note struct {
@@ -403,7 +403,9 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	}
 
 	//log.Printf("Body: %+v", body)
-	req2, err := http.NewRequest("POST", fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&entityId=%d", uri, entity, entityId), body)
+	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&entityId=%d", uri, entity, entityId)
+	log.Printf("Sending Attachment POST to: %s", postUrl)
+	req2, err := http.NewRequest("POST", postUrl, body)
 	if err != nil {
 		return 0, err
 	}
