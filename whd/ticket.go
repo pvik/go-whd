@@ -55,6 +55,7 @@ type Note struct {
 		Id   int    `json:"id,omitempty"`
 		Type string `json:"type,omitempty"`
 	} `json:"jobticket,omitempty"`
+	Reason string `json:"reason,omitempty"`
 }
 
 type Attachment struct {
@@ -125,7 +126,11 @@ func createNote(uri string, user User, whdTicketId int, note Note) (int, error) 
 		return 0, fmt.Errorf("Error unmarshalling response for create note: %v\n", string(data))
 	}
 
-	return note.Id, nil
+	if note.Reason == "" {
+		return note.Id, nil
+	} else {
+		return 0, fmt.Errorf("Unable to create note: %s", note.Reason)
+	}
 }
 
 func GetTicket(uri string, user User, id int, ticket *Ticket) error {
@@ -442,8 +447,14 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 
 	attIdFloat, ok := dataMap2["id"].(float64)
 	if !ok {
-		log.Println("invalid attachment id in map")
-		return 0, fmt.Errorf("Invalid attachment id in response")
+		reasonStr, ok := dataMap2["reason"].(float64)
+		if !ok {
+			log.Println("invalid attachment id in map")
+			return 0, fmt.Errorf("Invalid attachment id in response")
+		} else {
+			log.Printf("Unable to Upload Attachment: %s", reasonStr)
+			return 0, fmt.Errorf("Unable to upload attachment: %s", reasonStr)
+		}
 	}
 
 	return int(attIdFloat), nil
