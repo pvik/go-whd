@@ -159,6 +159,47 @@ func GetTicket(uri string, user User, id int, ticket *Ticket) error {
 	return nil
 }
 
+// GetTickets allows you to query WHD for a list of tickets which matches
+// a qualifier
+// sample qualifier:
+//  - all tickets including deleted: ((deleted %3D null) or (deleted %3D 0) or (deleted %3D 1))
+//  - tickets in location ATL (location.locationName %3D 'ATL')
+//  - tickets in stauts New (statustype.statusTypeName %3D 'Open')
+// limit - limits the number of tickets returned, max value is 100
+// page  - Page of results to retrieve. Returns `limit` number of items, starting
+//   with item `(page*limit)` of the search results
+func GetTickets(uri string, user User, qualifier string, limit uint, page uint, ticket *[]Ticket) error {
+	req, err := http.NewRequest("GET", uri+urn+"Tickets", nil)
+	if err != nil {
+		return err
+	}
+
+	WrapAuth(req, user)
+
+	q := req.URL.Query()
+	q.Add("qualifier", qualifier)
+	q.Add("limit", strconv.FormatUint(uint64(limit), 10))
+	q.Add("page", strconv.FormatUint(uint64(page), 10))
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	data, _ := ioutil.ReadAll(resp.Body)
+
+	if err = json.Unmarshal(data, &ticket); err != nil {
+		log.Println("error unmarshalling: ", err)
+		return err
+	}
+
+	return nil
+}
+
 func CreateUpdateTicket(uri string, user User, whdTicket Ticket) (int, error) {
 	whdTicketMap := make(map[string]interface{})
 
