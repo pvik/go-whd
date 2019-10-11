@@ -165,7 +165,7 @@ func GetTicket(uri string, user User, id int, ticket *Ticket) error {
 //  - all tickets including deleted: ((deleted %3D null) or (deleted %3D 0) or (deleted %3D 1))
 //  - tickets in location ATL (location.locationName %3D 'ATL')
 //  - tickets in stauts New (statustype.statusTypeName %3D 'Open')
-// limit - limits the number of tickets returned, max value is 100
+// limit - limits the number of tickets returned, default is 25, max value is 100
 // page  - Page of results to retrieve. Returns `limit` number of items, starting
 //   with item `(page*limit)` of the search results
 func GetTickets(uri string, user User, qualifier string, limit uint, page uint, ticket *[]Ticket) error {
@@ -175,6 +175,16 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 	}
 
 	WrapAuth(req, user)
+
+	if limit == 0 {
+		limit = 25
+	} else if limit > 100 {
+		limit = 100
+	}
+
+	if page == 0 {
+		page = 1
+	}
 
 	q := req.URL.Query()
 	q.Add("qualifier", qualifier)
