@@ -62,7 +62,7 @@ type Attachment struct {
 	Id            int       `json:"id,omitempty"`
 	FileName      string    `json:"fileName,omitempty"`
 	SizeString    string    `json:"sizeString,omitempty"`
-	UploadDateUtc time.Time `json:"uploadDateUtc,omitempty`
+	UploadDateUtc time.Time `json:"uploadDateUtc,omitempty"`
 }
 
 type Ticket struct {
