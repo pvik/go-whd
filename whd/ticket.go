@@ -498,14 +498,14 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 
 	attIdFloat, ok := dataMap2["id"].(float64)
 	if !ok {
-		reasonStr, ok := dataMap2["reason"].(float64)
+		reasonStr, ok := dataMap2["reason"].(string)
 		if !ok {
 			log.Println("invalid attachment id in map")
 			return 0, fmt.Errorf("Invalid attachment id in response")
-		} else {
-			log.Printf("Unable to Upload Attachment: %s", reasonStr)
-			return 0, fmt.Errorf("Unable to upload attachment: %s", reasonStr)
 		}
+
+		log.Printf("Unable to Upload Attachment: %s", reasonStr)
+		return 0, fmt.Errorf("Unable to upload attachment: %s", reasonStr)
 	}
 
 	return int(attIdFloat), nil

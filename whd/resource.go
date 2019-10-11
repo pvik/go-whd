@@ -111,7 +111,7 @@ func getResourceList(uri string, user User, resource string, limit int, params m
 
 		data, err := getResourceListPage(uri, user, resource, limit, pg, params)
 		if err != nil {
-			log.Printf("error retrieving: %s\n")
+			log.Printf("error retrieving: %s\n", err)
 			return err
 		}
 
@@ -132,7 +132,7 @@ func getResourceListMap(uri string, user User, resource string, limit int, param
 
 		data, err := getResourceListPage(uri, user, resource, limit, pg, params)
 		if err != nil {
-			log.Printf("error retrieving: %s\n")
+			log.Printf("error retrieving: %s\n", err)
 			return err
 		}
 
