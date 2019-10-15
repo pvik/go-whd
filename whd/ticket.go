@@ -359,6 +359,16 @@ func UploadAttachmentToNote(uri string, user User, noteId int, filename string, 
 	return UploadAttachmentToEntity(uri, user, "techNote", noteId, filename, filedata)
 }
 
+func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename string, fullFilePath string) (int, error) {
+	// read in file
+	filedata, err := ioutil.ReadFile(fullFilePath)
+
+	if err != nil {
+		return 0, fmt.Errorf("unable to read PDF file: %+v", err)
+	}
+	return UploadAttachmentToEntity(uri, user, "techNote", noteId, filename, filedata)
+}
+
 func UploadAttachmentToEntity(uri string, user User, entity string, entityId int, filename string, filedata []byte) (int, error) {
 	cookieJar, _ := cookiejar.New(nil)
 
