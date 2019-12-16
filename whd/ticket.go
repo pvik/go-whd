@@ -65,21 +65,38 @@ type Attachment struct {
 	UploadDateUtc time.Time `json:"uploadDateUtc,omitempty"`
 }
 
+type ClientTech struct {
+	Id          int    `json:"id,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Email       string `json:"email,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+}
+
+type TechGroupLevel struct {
+	Id             int    `json:"id,omitempty"`
+	Type           string `json:"type,omitempty"`
+	Level          int    `json:"level,omitempty"`
+	LevelName      string `json:"email,omitempty"`
+	ShortLevelName string `json:"displayName,omitempty"`
+}
+
 type Ticket struct {
-	Id             int           `json:"id,omitempty"`
-	Detail         string        `json:"detail,omitempty"`
-	Subject        string        `json:"subject,omitempty"`
-	LastUpdated    time.Time     `json:"lastUpdated,omitempty"`
-	LocationId     int           `json:"locationId,omitempty"`
-	Location       Location      `json:"location,omitempty"`
-	StatusTypeId   int           `json:"statusTypeId,omitempty"`
-	StatusType     StatusType    `json:"statustype,omitempty"`
-	PriorityTypeId int           `json:"priorityTypeId,omitempty"`
-	PriorityType   PriorityType  `json:"prioritytype,omitempty"`
-	ProblemType    ProblemType   `json:"problemtype,omitempty"`
-	CustomFields   []CustomField `json:"ticketCustomFields,omitempty"`
-	Notes          []Note        `json:"notes,omitempty"`
-	Attachments    []Attachment  `json:"attachments,omitempty"`
+	Id             int            `json:"id,omitempty"`
+	Detail         string         `json:"detail,omitempty"`
+	Subject        string         `json:"subject,omitempty"`
+	LastUpdated    time.Time      `json:"lastUpdated,omitempty"`
+	LocationId     int            `json:"locationId,omitempty"`
+	Location       Location       `json:"location,omitempty"`
+	StatusTypeId   int            `json:"statusTypeId,omitempty"`
+	StatusType     StatusType     `json:"statustype,omitempty"`
+	PriorityTypeId int            `json:"priorityTypeId,omitempty"`
+	PriorityType   PriorityType   `json:"prioritytype,omitempty"`
+	ProblemType    ProblemType    `json:"problemtype,omitempty"`
+	CustomFields   []CustomField  `json:"ticketCustomFields,omitempty"`
+	Notes          []Note         `json:"notes,omitempty"`
+	Attachments    []Attachment   `json:"attachments,omitempty"`
+	ClientTech     ClientTech     `json:"clientTech,omitempty"`
+	TechGroupLevel TechGroupLevel `json:"techGroupLevel,omitempty"`
 }
 
 func CreateNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
