@@ -85,6 +85,7 @@ type Ticket struct {
 	Detail         string         `json:"detail,omitempty"`
 	Subject        string         `json:"subject,omitempty"`
 	LastUpdated    time.Time      `json:"lastUpdated,omitempty"`
+	ReportDateUtc  time.Time      `json:"reportDateUtc,omitempty"`
 	LocationId     int            `json:"locationId,omitempty"`
 	Location       Location       `json:"location,omitempty"`
 	StatusTypeId   int            `json:"statusTypeId,omitempty"`
