@@ -71,6 +71,19 @@ func GetCustomFieldList(uri string, user User, list map[int]string) error {
 	return nil
 }
 
+func GetTechList(uri string, user User, list map[int]string) error {
+	limit := 50
+
+	resMap := make([]interface{}, 0, limit)
+	if err := getResourceListMap(uri, user, "Techs", limit, nil, &resMap); err != nil {
+		log.Printf("error retrieving resource list: %s\n", err)
+		return err
+	}
+
+	parseResourceListMap("id", "displayName", &resMap, list)
+	return nil
+}
+
 func GetLocationList(uri string, user User, list map[int]string) error {
 	limit := 250
 
