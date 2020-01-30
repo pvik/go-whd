@@ -24,8 +24,13 @@ type ProblemType struct {
 }
 
 type Location struct {
-	Id   int    `json:"id,omitempty"`
-	Type string `json:"type,omitempty"`
+	Id         int    `json:"id,omitempty"`
+	Type       string `json:"type,omitempty"`
+	Address    string `json:"address,omitempty"`
+	City       string `json:"city,omitempty"`
+	Name       string `json:"locationName,omitempty"`
+	PostalCode string `json:"postalCode,omitempty"`
+	State      string `json:"state,omitempty"`
 }
 
 type PriorityType struct {
