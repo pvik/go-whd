@@ -90,7 +90,7 @@ type Ticket struct {
 	Detail         string         `json:"detail,omitempty"`
 	Subject        string         `json:"subject,omitempty"`
 	LastUpdated    time.Time      `json:"lastUpdated,omitempty"`
-	ReportDateUtc  time.Time      `json:"reportDateUtc,omitempty"`
+	ReportDateUtc  string         `json:"reportDateUtc,omitempty"`
 	LocationId     int            `json:"locationId,omitempty"`
 	Location       Location       `json:"location,omitempty"`
 	StatusTypeId   int            `json:"statusTypeId,omitempty"`
@@ -235,6 +235,9 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 
 func CreateUpdateTicket(uri string, user User, whdTicket Ticket) (int, error) {
 	whdTicketMap := make(map[string]interface{})
+
+	// reportDateUTC cannot be set when sending create/update transaction to WHD
+	whdTicket.ReportDateUtc = ""
 
 	if whdTicket.LocationId != 0 {
 		whdTicket.Location = Location{
