@@ -382,7 +382,7 @@ func UploadAttachment(uri string, user User, ticketId int, filename string, file
 }
 
 func UploadAttachmentToNote(uri string, user User, noteId int, filename string, filedata []byte) (int, error) {
-	return UploadAttachmentToEntity(uri, user, "techNote", noteId, filename, filedata)
+	return UploadAttachmentToEntity(uri, user, "clientNote", noteId, filename, filedata)
 }
 
 func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename string, fullFilePath string, deleteFileAfter bool) (int, error) {
