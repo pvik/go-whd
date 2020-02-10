@@ -515,6 +515,10 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	// Prepare a form that you will submit to that URL.
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
+
+	writer.WriteField("name", "fileUpload")
+	writer.WriteField("filename", filename)
+
 	part, err := writer.CreateFormFile("file", filepath.Base(filename))
 	if err != nil {
 		return 0, err
@@ -525,6 +529,8 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	if err != nil {
 		return 0, err
 	}
+
+	log.Println("writer: %+v", writer)
 
 	//log.Printf("Body: %+v", body)
 	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&entityId=%d&returnFields=id", uri, entity, entityId)
