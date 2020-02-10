@@ -541,7 +541,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		Jar: cookieJar,
 	}
 
-	req2.Header.Set("accept", "application/json")
+	req2.Header.Set("accept", "text/html,image/gif,image/jpeg,*;q=.2,*/*;q=.2")
 	req2.Header.Set("Pragma", "no-cache")
 	req2.Header.Set("Connection", "keep-alive")
 	// Don't forget to set the content type, this will contain the boundary.
