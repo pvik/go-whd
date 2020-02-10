@@ -558,7 +558,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	// }
 
 	data2, _ := ioutil.ReadAll(resp2.Body)
-	log.Printf("attachment upload response: %s", string(data2))
+	log.Printf("attachment upload response (%d): %s", resp2.StatusCode, string(data2))
 	var dataMap2 map[string]interface{}
 	if err := json.Unmarshal(data2, &dataMap2); err != nil {
 		log.Println("error unmarshalling att upload response: ", err)
