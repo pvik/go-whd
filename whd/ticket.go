@@ -527,8 +527,6 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		return 0, err
 	}
 
-	log.Println("writer: %+v", writer)
-
 	//log.Printf("Body: %+v", body)
 	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&%sId=%d&returnFields=id&sessionKey=%s", uri, entity, entity, entityId, sessionKey)
 	log.Printf("Sending Attachment POST to: %s", postUrl)
@@ -554,6 +552,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	}
 	defer resp.Body.Close()
 
+	log.Printf("attachment upload response: %s", string(data2))
 	if resp2.StatusCode != http.StatusOK {
 		err = fmt.Errorf("error uploading attachment: bad status: %s", resp2.Status)
 		return 0, err
