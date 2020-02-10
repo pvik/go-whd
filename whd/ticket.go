@@ -393,7 +393,7 @@ func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename 
 		return 0, fmt.Errorf("unable to read PDF file: %+v", err)
 	}
 
-	attId, err := UploadAttachmentToEntity(uri, user, "techNote", noteId, filename, filedata)
+	attId, err := UploadAttachmentToNote(uri, user, noteId, filename, filedata)
 
 	if err != nil {
 		return 0, err
