@@ -530,7 +530,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	log.Println("writer: %+v", writer)
 
 	//log.Printf("Body: %+v", body)
-	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&entityId=%d", uri, entity, entityId)
+	postUrl := fmt.Sprintf("%s%s/helpdesk/attachment/upload?type=%s&entityId=%d", uri, urn, entity, entityId)
 	log.Printf("Sending Attachment POST to: %s", postUrl)
 	req2, err := http.NewRequest("POST", postUrl, body)
 	if err != nil {
