@@ -552,11 +552,10 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	}
 	defer resp.Body.Close()
 
-	log.Printf("attachment upload response: %s", string(data2))
-	if resp2.StatusCode != http.StatusOK {
-		err = fmt.Errorf("error uploading attachment: bad status: %s", resp2.Status)
-		return 0, err
-	}
+	// if resp2.StatusCode != http.StatusOK {
+	// 	err = fmt.Errorf("error uploading attachment: bad status: %s", resp2.Status)
+	// 	return 0, err
+	// }
 
 	data2, _ := ioutil.ReadAll(resp2.Body)
 	log.Printf("attachment upload response: %s", string(data2))
