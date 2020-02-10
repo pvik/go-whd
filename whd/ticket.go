@@ -406,6 +406,27 @@ func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename 
 	return attId, nil
 }
 
+func UploadAttachmentToTicketFromFile(uri string, user User, ticketId int, filename string, fullFilePath string, deleteFileAfter bool) (int, error) {
+	// read in file
+	filedata, err := ioutil.ReadFile(fullFilePath)
+
+	if err != nil {
+		return 0, fmt.Errorf("unable to read PDF file: %+v", err)
+	}
+
+	attId, err := UploadAttachment(uri, user, ticketId, filename, filedata)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if deleteFileAfter {
+		os.Remove(fullFilePath)
+	}
+
+	return attId, nil
+}
+
 func UploadAttachmentToEntity(uri string, user User, entity string, entityId int, filename string, filedata []byte) (int, error) {
 	cookieJar, _ := cookiejar.New(nil)
 
@@ -506,7 +527,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	}
 
 	//log.Printf("Body: %+v", body)
-	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&entityId=%d", uri, entity, entityId)
+	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload?type=%s&entityId=%d&returnFields=id", uri, entity, entityId)
 	log.Printf("Sending Attachment POST to: %s", postUrl)
 	req2, err := http.NewRequest("POST", postUrl, body)
 	if err != nil {
