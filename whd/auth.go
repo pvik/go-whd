@@ -2,6 +2,7 @@ package whd
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -71,4 +72,30 @@ func GetSessionKey(uri string, user User) (string, error) {
 	}
 
 	return sessionKey, nil
+}
+
+func TerminateSession(uri string, sessionKey string) error {
+	req, err := http.NewRequest("DELETE", uri+urn+"Session", nil)
+	if err != nil {
+		return err
+	}
+
+	q := req.URL.Query()
+	q.Add("sessionKey", sessionKey)
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return err
+	}
+
+	data, _ := ioutil.ReadAll(resp.Body)
+
+	if string(data) == "OK" {
+		return nil
+	}
+
+	return fmt.Errorf("Invalid response: %s", data)
 }
