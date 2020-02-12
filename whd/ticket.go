@@ -465,6 +465,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		return 0, err
 	}
 	log.Printf("sessionKey retrieved: %s", sessionKey)
+	defer TerminateSession(uri, sessionKey)
 
 	// Upload attachment
 	cookies := cookieJar.Cookies(req.URL)
@@ -576,8 +577,6 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		log.Printf("Unable to Upload Attachment: %s", reasonStr)
 		return 0, fmt.Errorf("Unable to upload attachment: %s", reasonStr)
 	}
-
-	TerminateSession(uri, sessionKey)
 
 	return int(attIdFloat), nil
 }
