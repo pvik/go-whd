@@ -577,5 +577,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		return 0, fmt.Errorf("Unable to upload attachment: %s", reasonStr)
 	}
 
+	TerminateSession(uri, sessionKey)
+
 	return int(attIdFloat), nil
 }
