@@ -48,6 +48,11 @@ type CustomField struct {
 	Value string `json:"restValue"`
 }
 
+type OrionAlert struct {
+	Id   string            `json:"id"`
+	Data map[string]string `json:"data"`
+}
+
 type Note struct {
 	Id                  int          `json:"id,omitempty"`
 	Date                time.Time    `json:"date,omitempty"`
@@ -103,6 +108,7 @@ type Ticket struct {
 	Attachments    []Attachment   `json:"attachments,omitempty"`
 	ClientTech     ClientTech     `json:"clientTech,omitempty"`
 	TechGroupLevel TechGroupLevel `json:"techGroupLevel,omitempty"`
+	OrionAlert     OrionAlert     `json:"orionAlert,omitempty"`
 }
 
 func CreateNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
