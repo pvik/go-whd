@@ -109,6 +109,8 @@ type Ticket struct {
 	ClientTech     ClientTech     `json:"clientTech,omitempty"`
 	TechGroupLevel TechGroupLevel `json:"techGroupLevel,omitempty"`
 	OrionAlert     OrionAlert     `json:"orionAlert,omitempty"`
+	EmailTech      bool           `json:"emailTech,omitempty"`
+	EmailClient    bool           `json:"emailClient,omitempty"`
 }
 
 func CreateNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
