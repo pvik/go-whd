@@ -61,6 +61,7 @@ type Note struct {
 	NoteText            string       `json:"noteText,omitempty"` // Used to Create note TO whd
 	Attachments         []Attachment `json:"attachments,omitempty"`
 	IsHidden            bool         `json:"isHidden"`
+	IsTechNote          bool         `json:"isTechNote"`
 	JobTicket           struct {
 		Id   int    `json:"id,omitempty"`
 		Type string `json:"type,omitempty"`
