@@ -115,22 +115,22 @@ type Ticket struct {
 	EmailClient    bool           `json:"emailClient"`
 }
 
-func CreateNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
+func CreateNote(uri string, user User, whdTicketId int, noteTxt string, sslVerify bool) (int, error) {
 	var note Note
 	note.JobTicket.Id = whdTicketId
 	note.JobTicket.Type = "JobTicket"
 	note.NoteText = noteTxt
 	note.IsHidden = false
-	return createNote(uri, user, whdTicketId, note)
+	return createNote(uri, user, whdTicketId, note, sslVerify)
 }
 
-func CreateHiddenNote(uri string, user User, whdTicketId int, noteTxt string) (int, error) {
+func CreateHiddenNote(uri string, user User, whdTicketId int, noteTxt string, sslVerify bool) (int, error) {
 	var note Note
 	note.JobTicket.Id = whdTicketId
 	note.JobTicket.Type = "JobTicket"
 	note.NoteText = noteTxt
 	note.IsHidden = true
-	return createNote(uri, user, whdTicketId, note)
+	return createNote(uri, user, whdTicketId, note, sslVerify)
 }
 
 func createNote(uri string, user User, whdTicketId int, note Note, sslVerify bool) (int, error) {
@@ -269,7 +269,7 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 	return nil
 }
 
-func CreateUpdateTicket(uri string, user User, whdTicket Ticket) (int, error) {
+func CreateUpdateTicket(uri string, user User, whdTicket Ticket, sslVerify bool) (int, error) {
 	whdTicketMap := make(map[string]interface{})
 
 	// reportDateUTC cannot be set when sending create/update transaction to WHD
@@ -319,9 +319,9 @@ func CreateUpdateTicket(uri string, user User, whdTicket Ticket) (int, error) {
 	ticketJsonStr, _ := json.Marshal(whdTicketMap)
 	log.Printf("JSON Sent to WHD: %s", ticketJsonStr)
 	if whdTicket.Id == 0 {
-		return createTicket(uri, user, []byte(ticketJsonStr))
+		return createTicket(uri, user, []byte(ticketJsonStr), sslVerify)
 	} else {
-		return updateTicket(uri, user, whdTicket.Id, []byte(ticketJsonStr))
+		return updateTicket(uri, user, whdTicket.Id, []byte(ticketJsonStr), sslVerify)
 	}
 }
 
@@ -431,8 +431,8 @@ func GetAttachment(uri string, user User, attachmentId int, sslVerify bool) ([]b
 	return data, nil
 }
 
-func GetAttachmentAsBase64(uri string, user User, attachmentId int) (string, error) {
-	data, err := GetAttachment(uri, user, attachmentId)
+func GetAttachmentAsBase64(uri string, user User, attachmentId int, sslVerify bool) (string, error) {
+	data, err := GetAttachment(uri, user, attachmentId, sslVerify)
 	if err != nil {
 		return "", err
 	}
