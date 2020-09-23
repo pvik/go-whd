@@ -1,6 +1,7 @@
 package whd
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -18,11 +19,11 @@ func (rt RequestType) String() string {
 	return rt.Name
 }
 
-func GetRequestTypeList(uri string, user User, result map[int]RequestType) error {
+func GetRequestTypeList(uri string, user User, result map[int]RequestType, sslVerify bool) error {
 	limit := 75
 
 	resMap := make(map[int][]byte)
-	if err := getResourceList(uri, user, "RequestTypes", limit, map[string]string{"list": "all"}, resMap); err != nil {
+	if err := getResourceList(uri, user, "RequestTypes", limit, map[string]string{"list": "all"}, resMap, sslVerify); err != nil {
 		log.Printf("error retrieving resource list: %s\n", err)
 		return err
 	}
@@ -45,11 +46,11 @@ func GetRequestTypeList(uri string, user User, result map[int]RequestType) error
 	return nil
 }
 
-func GetStatusTypeList(uri string, user User, list map[int]string) error {
+func GetStatusTypeList(uri string, user User, list map[int]string, sslVerify bool) error {
 	limit := 50
 
 	resMap := make([]interface{}, 0, limit)
-	if err := getResourceListMap(uri, user, "StatusTypes", limit, nil, &resMap); err != nil {
+	if err := getResourceListMap(uri, user, "StatusTypes", limit, nil, &resMap, sslVerify); err != nil {
 		log.Printf("error retrieving resource list: %s\n", err)
 		return err
 	}
@@ -58,11 +59,11 @@ func GetStatusTypeList(uri string, user User, list map[int]string) error {
 	return nil
 }
 
-func GetCustomFieldList(uri string, user User, list map[int]string) error {
+func GetCustomFieldList(uri string, user User, list map[int]string, sslVerify bool) error {
 	limit := 50
 
 	resMap := make([]interface{}, 0, limit)
-	if err := getResourceListMap(uri, user, "CustomFieldDefinitions", limit, nil, &resMap); err != nil {
+	if err := getResourceListMap(uri, user, "CustomFieldDefinitions", limit, nil, &resMap, sslVerify); err != nil {
 		log.Printf("error retrieving resource list: %s\n", err)
 		return err
 	}
@@ -71,11 +72,11 @@ func GetCustomFieldList(uri string, user User, list map[int]string) error {
 	return nil
 }
 
-func GetTechList(uri string, user User, list map[int]string) error {
+func GetTechList(uri string, user User, list map[int]string, sslVerify bool) error {
 	limit := 50
 
 	resMap := make([]interface{}, 0, limit)
-	if err := getResourceListMap(uri, user, "Techs", limit, nil, &resMap); err != nil {
+	if err := getResourceListMap(uri, user, "Techs", limit, nil, &resMap, sslVerify); err != nil {
 		log.Printf("error retrieving resource list: %s\n", err)
 		return err
 	}
@@ -84,11 +85,11 @@ func GetTechList(uri string, user User, list map[int]string) error {
 	return nil
 }
 
-func GetLocationList(uri string, user User, list map[int]string) error {
+func GetLocationList(uri string, user User, list map[int]string, sslVerify bool) error {
 	limit := 250
 
 	resMap := make([]interface{}, 0, limit)
-	if err := getResourceListMap(uri, user, "Locations", limit, map[string]string{"qualifier": "((deleted=null)or(deleted=0))"}, &resMap); err != nil {
+	if err := getResourceListMap(uri, user, "Locations", limit, map[string]string{"qualifier": "((deleted=null)or(deleted=0))"}, &resMap, sslVerify); err != nil {
 		log.Printf("error retrieving resource list: %s\n", err)
 		return err
 	}
@@ -97,11 +98,11 @@ func GetLocationList(uri string, user User, list map[int]string) error {
 	return nil
 }
 
-func GetPriorityTypeList(uri string, user User, list map[int]string) error {
+func GetPriorityTypeList(uri string, user User, list map[int]string, sslVerify bool) error {
 	limit := 10
 
 	resMap := make([]interface{}, 0, limit)
-	if err := getResourceListMap(uri, user, "PriorityTypes", limit, nil, &resMap); err != nil {
+	if err := getResourceListMap(uri, user, "PriorityTypes", limit, nil, &resMap, sslVerify); err != nil {
 		log.Printf("error retrieving resource list: %s\n", err)
 		return err
 	}
@@ -117,12 +118,12 @@ func parseResourceListMap(idLabel string, valueLabel string, resMap *[]interface
 	}
 }
 
-func getResourceList(uri string, user User, resource string, limit int, params map[string]string, result map[int][]byte) error {
+func getResourceList(uri string, user User, resource string, limit int, params map[string]string, result map[int][]byte, sslVerify bool) error {
 	tmp := make([]interface{}, limit, limit)
 
 	for pg := 1; len(tmp) == limit; pg++ {
 
-		data, err := getResourceListPage(uri, user, resource, limit, pg, params)
+		data, err := getResourceListPage(uri, user, resource, limit, pg, params, sslVerify)
 		if err != nil {
 			log.Printf("error retrieving: %s\n", err)
 			return err
@@ -138,12 +139,12 @@ func getResourceList(uri string, user User, resource string, limit int, params m
 	return nil
 }
 
-func getResourceListMap(uri string, user User, resource string, limit int, params map[string]string, result *[]interface{}) error {
+func getResourceListMap(uri string, user User, resource string, limit int, params map[string]string, result *[]interface{}, sslVerify bool) error {
 	tmp := make([]interface{}, limit, limit)
 
 	for pg := 1; len(tmp) == limit; pg++ {
 
-		data, err := getResourceListPage(uri, user, resource, limit, pg, params)
+		data, err := getResourceListPage(uri, user, resource, limit, pg, params, sslVerify)
 		if err != nil {
 			log.Printf("error retrieving: %s\n", err)
 			return err
@@ -159,7 +160,7 @@ func getResourceListMap(uri string, user User, resource string, limit int, param
 	return nil
 }
 
-func getResourceListPage(uri string, user User, resource string, limit int, page int, params map[string]string) ([]byte, error) {
+func getResourceListPage(uri string, user User, resource string, limit int, page int, params map[string]string, sslVerify bool) ([]byte, error) {
 	log.Printf("Get %s | limit: %d | page: %d", resource, limit, page)
 
 	req, err := http.NewRequest("GET", uri+urn+resource, nil)
@@ -180,7 +181,16 @@ func getResourceListPage(uri string, user User, resource string, limit int, page
 	req.URL.RawQuery = q.Encode()
 	//log.Printf("URL: %s\n", req.URL.String())
 
-	client := &http.Client{}
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)

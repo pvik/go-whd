@@ -2,6 +2,7 @@ package whd
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -132,7 +133,7 @@ func CreateHiddenNote(uri string, user User, whdTicketId int, noteTxt string) (i
 	return createNote(uri, user, whdTicketId, note)
 }
 
-func createNote(uri string, user User, whdTicketId int, note Note) (int, error) {
+func createNote(uri string, user User, whdTicketId int, note Note, sslVerify bool) (int, error) {
 	noteJsonStr, _ := json.Marshal(note)
 	log.Printf("JSON Sent to WHD: %s", noteJsonStr)
 	req, err := http.NewRequest("POST", uri+urn+"TechNotes", bytes.NewBuffer(noteJsonStr))
@@ -143,7 +144,16 @@ func createNote(uri string, user User, whdTicketId int, note Note) (int, error) 
 
 	WrapAuth(req, user)
 
-	client := &http.Client{}
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
@@ -165,7 +175,7 @@ func createNote(uri string, user User, whdTicketId int, note Note) (int, error) 
 	}
 }
 
-func GetTicket(uri string, user User, id int, ticket *Ticket) error {
+func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) error {
 	req, err := http.NewRequest("GET", uri+urn+"Ticket/"+strconv.Itoa(id), nil)
 	if err != nil {
 		return err
@@ -173,7 +183,16 @@ func GetTicket(uri string, user User, id int, ticket *Ticket) error {
 
 	WrapAuth(req, user)
 
-	client := &http.Client{}
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
@@ -200,7 +219,7 @@ func GetTicket(uri string, user User, id int, ticket *Ticket) error {
 // limit - limits the number of tickets returned, default is 25, max value is 100
 // page  - Page of results to retrieve. Returns `limit` number of items, starting
 //   with item `(page*limit)` of the search results
-func GetTickets(uri string, user User, qualifier string, limit uint, page uint, ticket *[]Ticket) error {
+func GetTickets(uri string, user User, qualifier string, limit uint, page uint, ticket *[]Ticket, sslVerify bool) error {
 	req, err := http.NewRequest("GET", uri+urn+"Tickets", nil)
 	if err != nil {
 		return err
@@ -224,7 +243,15 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 	q.Add("page", strconv.FormatUint(uint64(page), 10))
 	req.URL.RawQuery = q.Encode()
 
-	client := &http.Client{}
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
@@ -298,7 +325,7 @@ func CreateUpdateTicket(uri string, user User, whdTicket Ticket) (int, error) {
 	}
 }
 
-func createTicket(uri string, user User, ticketJsonStr []byte) (int, error) {
+func createTicket(uri string, user User, ticketJsonStr []byte, sslVerify bool) (int, error) {
 	req, err := http.NewRequest("POST", uri+urn+"Ticket", bytes.NewBuffer(ticketJsonStr))
 	if err != nil {
 		return 0, err
@@ -307,7 +334,16 @@ func createTicket(uri string, user User, ticketJsonStr []byte) (int, error) {
 
 	WrapAuth(req, user)
 
-	client := &http.Client{}
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
 	resp, err := client.Do(req)
 	//defer resp.Body.Close()
 	if err != nil {
@@ -327,7 +363,7 @@ func createTicket(uri string, user User, ticketJsonStr []byte) (int, error) {
 	return ticket.Id, nil
 }
 
-func updateTicket(uri string, user User, id int, ticketJsonStr []byte) (int, error) {
+func updateTicket(uri string, user User, id int, ticketJsonStr []byte, sslVerify bool) (int, error) {
 	req, err := http.NewRequest("PUT", uri+urn+"Ticket/"+strconv.Itoa(id), bytes.NewBuffer(ticketJsonStr))
 	if err != nil {
 		return 0, err
@@ -336,7 +372,16 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte) (int, err
 
 	WrapAuth(req, user)
 
-	client := &http.Client{}
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
@@ -355,7 +400,7 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte) (int, err
 	return ticket.Id, nil
 }
 
-func GetAttachment(uri string, user User, attachmentId int) ([]byte, error) {
+func GetAttachment(uri string, user User, attachmentId int, sslVerify bool) ([]byte, error) {
 	req, err := http.NewRequest("GET", uri+urn+"TicketAttachments/"+strconv.Itoa(attachmentId), nil)
 	if err != nil {
 		return nil, err
@@ -364,7 +409,16 @@ func GetAttachment(uri string, user User, attachmentId int) ([]byte, error) {
 	WrapAuth(req, user)
 	req.Header.Set("accept", "application/octet")
 
-	client := &http.Client{}
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
