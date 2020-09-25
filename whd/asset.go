@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func GetAsset(uri string, user User, assetId int, limit uint, page uint, asset *[]Asset, sslVerify bool) error {
+func GetAsset(uri string, user User, assetId int, asset *[]Asset, sslVerify bool) error {
 	req, err := http.NewRequest("GET", uri+urn+"Assets", nil)
 	if err != nil {
 		return err
@@ -18,18 +18,8 @@ func GetAsset(uri string, user User, assetId int, limit uint, page uint, asset *
 
 	WrapAuth(req, user)
 
-	if limit == 0 {
-		limit = 25
-	} else if limit > 100 {
-		limit = 100
-	}
-
-	if page == 0 {
-		page = 1
-	}
-
 	q := req.URL.Query()
-	q.Add("assetNumber", fmt.Sprintf("%s", assetId))
+	q.Add("assetNumber", fmt.Sprintf("%d", assetId))
 	req.URL.RawQuery = q.Encode()
 
 	var client *http.Client
