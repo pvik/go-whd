@@ -34,6 +34,17 @@ type Location struct {
 	State      string `json:"state,omitempty"`
 }
 
+type Asset struct {
+	Id             int           `json:"id,omitempty"`
+	Type           string        `json:"type,omitempty"`
+	AssetNumber    string        `json:"assetNumber,omitempty"`
+	SerialNumber   string        `json:"serialNumber,omitempty"`
+	NetworkAddress string        `json:"networkAddress,omitempty"`
+	NetworkName    string        `json:"networkName,omitempty"`
+	Location       Location      `json:"location,omitempty"`
+	CustomFields   []CustomField `json:"assetCustomFields,omitempty"`
+}
+
 type PriorityType struct {
 	Id   int    `json:"id,omitempty"`
 	Type string `json:"type,omitempty"`
@@ -106,6 +117,7 @@ type Ticket struct {
 	PriorityType   PriorityType   `json:"prioritytype,omitempty"`
 	ProblemType    ProblemType    `json:"problemtype,omitempty"`
 	CustomFields   []CustomField  `json:"ticketCustomFields,omitempty"`
+	Assets         []Asset        `json:"assets,omitempty"`
 	Notes          []Note         `json:"notes,omitempty"`
 	Attachments    []Attachment   `json:"attachments,omitempty"`
 	ClientTech     ClientTech     `json:"clientTech,omitempty"`
