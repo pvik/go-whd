@@ -52,7 +52,7 @@ func GetAssets(uri string, user User, qualifier string, limit uint, page uint, a
 	data, _ := ioutil.ReadAll(resp.Body)
 
 	if err = json.Unmarshal(data, &asset); err != nil {
-		log.Println("error unmarshalling: ", err)
+		log.Printf("error unmarshalling: %s | %s", err, data)
 		return err
 	}
 
