@@ -528,6 +528,8 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	}
 
 	data, _ := ioutil.ReadAll(resp.Body)
+	log.Printf("session key resp: %s\n", data)
+
 	var dataMap map[string]interface{}
 	if err := json.Unmarshal(data, &dataMap); err != nil {
 		log.Println("error unmarshalling: ", err)
@@ -540,7 +542,6 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		return 0, err
 	}
 	log.Printf("sessionKey retrieved: %s", sessionKey)
-	defer TerminateSession(uri, sessionKey)
 
 	// Upload attachment
 	cookies := cookieJar.Cookies(req.URL)
@@ -561,9 +562,10 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	cookies = append(cookies, &http.Cookie{
 		Name:  "wosid",
 		Value: sessionKey,
-		Path:  "/helpdesk",
+		Path:  "/",
 		//Domain: host,
 	})
+
 	log.Printf("Cookies with wosid: %+v", cookies)
 
 	// check if tmp directory exists and create it
@@ -591,7 +593,6 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	// Prepare a form that you will submit to that URL.
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-
 	part, err := writer.CreateFormFile("file", filepath.Base(filename))
 	if err != nil {
 		return 0, err
@@ -603,8 +604,10 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		return 0, err
 	}
 
+	writer.WriteField("wosid", sessionKey)
+
 	//log.Printf("Body: %+v", body)
-	postUrl := fmt.Sprintf("%s%s/helpdesk/attachment/upload?type=%s&entityId=%d&returnFields=id&sessionKey=%s", uri, urn, entity, entityId, sessionKey)
+	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload", uri)
 	log.Printf("Sending Attachment POST to: %s", postUrl)
 	req2, err := http.NewRequest("POST", postUrl, body)
 	if err != nil {
@@ -615,11 +618,33 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		Jar: cookieJar,
 	}
 
-	req2.Header.Set("accept", "text/html,image/gif,image/jpeg,*;q=.2,*/*;q=.2")
+	req2.Header.Set("User-Agent", "Java/1.7.0_55")
+	req2.Header.Set("accept", "application/json")
 	req2.Header.Set("Pragma", "no-cache")
+	req2.Header.Set("Cache-Control", "no-cache")
 	req2.Header.Set("Connection", "keep-alive")
+	req2.Header.Set("Accept", "text/html,image/gif,image/jpeg,*;q=.2,*/*;q=.2")
 	// Don't forget to set the content type, this will contain the boundary.
 	req2.Header.Set("Content-Type", writer.FormDataContentType())
+
+	q := req2.URL.Query()
+
+	q.Add("type", entity)
+	q.Add("entityId", fmt.Sprintf("%d", entityId))
+	q.Add("returnFields", "id")
+	q.Add("sessionKey", sessionKey)
+
+	// q.Add("subscriberId", "2")
+
+	req2.URL.RawQuery = q.Encode()
+
+	// WrapAuth(req2, User{
+	// 	Name: user.Name,
+	// 	Pass: sessionKey,
+	// 	Type: SessionKeyAuth,
+	// })
+
+	log.Printf("Sending Attachment POST to: %+v", req2.URL)
 
 	resp2, err := client2.Do(req2)
 	if err != nil {
@@ -634,7 +659,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	// }
 
 	data2, _ := ioutil.ReadAll(resp2.Body)
-	log.Printf("attachment upload response (%d): %s", resp2.StatusCode, string(data2))
+	log.Printf("attachment upload response(%d): %s", resp2.StatusCode, string(data2))
 	var dataMap2 map[string]interface{}
 	if err := json.Unmarshal(data2, &dataMap2); err != nil {
 		log.Println("error unmarshalling att upload response: ", err)
