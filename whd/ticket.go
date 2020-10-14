@@ -32,6 +32,7 @@ type Location struct {
 	Name       string `json:"locationName,omitempty"`
 	PostalCode string `json:"postalCode,omitempty"`
 	State      string `json:"state,omitempty"`
+	Country    string `json:"country,omitempty"`
 }
 
 type Asset struct {

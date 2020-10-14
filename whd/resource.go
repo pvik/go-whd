@@ -19,6 +19,41 @@ func (rt RequestType) String() string {
 	return rt.Name
 }
 
+func GetLocation(uri string, user User, id int, location *Location, sslVerify bool) error {
+	req, err := http.NewRequest("GET", uri+urn+"Location/"+strconv.Itoa(id), nil)
+	if err != nil {
+		return err
+	}
+
+	WrapAuth(req, user)
+
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	data, _ := ioutil.ReadAll(resp.Body)
+
+	if err = json.Unmarshal(data, &location); err != nil {
+		log.Println("error unmarshalling: ", err)
+		return err
+	}
+
+	return nil
+}
+
 func GetRequestTypeList(uri string, user User, result map[int]RequestType, sslVerify bool) error {
 	limit := 75
 
