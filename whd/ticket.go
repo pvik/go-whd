@@ -62,8 +62,8 @@ type CustomField struct {
 }
 
 type OrionAlert struct {
-	Id   string            `json:"id"`
-	Data map[string]string `json:"data"`
+	Id   string            `json:"id,omitempty"`
+	Data map[string]string `json:"data,omitempty"`
 }
 
 type Note struct {
