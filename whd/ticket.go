@@ -25,14 +25,15 @@ type ProblemType struct {
 }
 
 type Location struct {
-	Id         int    `json:"id,omitempty"`
-	Type       string `json:"type,omitempty"`
-	Address    string `json:"address,omitempty"`
-	City       string `json:"city,omitempty"`
-	Name       string `json:"locationName,omitempty"`
-	PostalCode string `json:"postalCode,omitempty"`
-	State      string `json:"state,omitempty"`
-	Country    string `json:"country,omitempty"`
+	Id           int           `json:"id,omitempty"`
+	Type         string        `json:"type,omitempty"`
+	Address      string        `json:"address,omitempty"`
+	City         string        `json:"city,omitempty"`
+	Name         string        `json:"locationName,omitempty"`
+	PostalCode   string        `json:"postalCode,omitempty"`
+	State        string        `json:"state,omitempty"`
+	Country      string        `json:"country,omitempty"`
+	CustomFields []CustomField `json:"locationCustomFields,omitempty"`
 }
 
 type Asset struct {
@@ -57,8 +58,8 @@ type StatusType struct {
 }
 
 type CustomField struct {
-	Id    int    `json:"definitionId"`
-	Value string `json:"restValue"`
+	Id    int    `json:"definitionId,omitempty"`
+	Value string `json:"restValue,omitempty"`
 }
 
 type OrionAlert struct {
