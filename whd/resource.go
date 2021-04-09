@@ -107,6 +107,19 @@ func GetCustomFieldList(uri string, user User, list map[int]string, sslVerify bo
 	return nil
 }
 
+func GetLocationCustomFieldList(uri string, user User, list map[int]string, sslVerify bool) error {
+	limit := 50
+
+	resMap := make([]interface{}, 0, limit)
+	if err := getResourceListMap(uri, user, "CustomFieldDefinitions/Location", limit, nil, &resMap, sslVerify); err != nil {
+		log.Printf("error retrieving resource list: %s\n", err)
+		return err
+	}
+
+	parseResourceListMap("id", "label", &resMap, list)
+	return nil
+}
+
 func GetTechList(uri string, user User, list map[int]string, sslVerify bool) error {
 	limit := 50
 
