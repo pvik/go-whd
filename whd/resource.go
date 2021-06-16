@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 type RequestType struct {
@@ -20,7 +22,7 @@ func (rt RequestType) String() string {
 }
 
 func GetLocation(uri string, user User, id int, location *Location, sslVerify bool) error {
-	req, err := http.NewRequest("GET", uri+urn+"Location/"+strconv.Itoa(id), nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"Location/"+strconv.Itoa(id), nil)
 	if err != nil {
 		return err
 	}
@@ -37,7 +39,11 @@ func GetLocation(uri string, user User, id int, location *Location, sslVerify bo
 		client = &http.Client{}
 	}
 
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return err
@@ -224,7 +230,7 @@ func getResourceListMap(uri string, user User, resource string, limit int, param
 func getResourceListPage(uri string, user User, resource string, limit int, page int, params map[string]string, sslVerify bool) ([]byte, error) {
 	log.Printf("Get %s | limit: %d | page: %d", resource, limit, page)
 
-	req, err := http.NewRequest("GET", uri+urn+resource, nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+resource, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +258,11 @@ func getResourceListPage(uri string, user User, resource string, limit int, page
 		client = &http.Client{}
 	}
 
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return nil, err

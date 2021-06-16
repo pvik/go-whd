@@ -16,6 +16,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 type ProblemType struct {
@@ -150,7 +152,7 @@ func CreateHiddenNote(uri string, user User, whdTicketId int, noteTxt string, ss
 func createNote(uri string, user User, whdTicketId int, note Note, sslVerify bool) (int, error) {
 	noteJsonStr, _ := json.Marshal(note)
 	log.Printf("JSON Sent to WHD: %s", noteJsonStr)
-	req, err := http.NewRequest("POST", uri+urn+"TechNotes", bytes.NewBuffer(noteJsonStr))
+	req, err := retryablehttp.NewRequest("POST", uri+urn+"TechNotes", bytes.NewBuffer(noteJsonStr))
 	if err != nil {
 		return 0, err
 	}
@@ -168,7 +170,11 @@ func createNote(uri string, user User, whdTicketId int, note Note, sslVerify boo
 		client = &http.Client{}
 	}
 
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
@@ -189,8 +195,54 @@ func createNote(uri string, user User, whdTicketId int, note Note, sslVerify boo
 	}
 }
 
+func GetNotes(uri string, user User, ticketID int, notes *[]Note, sslVerify bool) error {
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"TicketNotes", nil)
+	if err != nil {
+		return err
+	}
+
+	WrapAuth(req, user)
+
+	q := req.URL.Query()
+
+	q.Add("jobTicketID", fmt.Sprintf("%d", ticketID))
+	q.Add("limit", "1000")
+
+	req.URL.RawQuery = q.Encode()
+
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	data, _ := ioutil.ReadAll(resp.Body)
+
+	if err = json.Unmarshal(data, &notes); err != nil {
+		log.Println("error unmarshalling: ", err)
+		return err
+	}
+
+	return nil
+}
+
 func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) error {
-	req, err := http.NewRequest("GET", uri+urn+"Ticket/"+strconv.Itoa(id), nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"Ticket/"+strconv.Itoa(id), nil)
 	if err != nil {
 		return err
 	}
@@ -207,7 +259,11 @@ func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) er
 		client = &http.Client{}
 	}
 
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return err
@@ -234,7 +290,7 @@ func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) er
 // page  - Page of results to retrieve. Returns `limit` number of items, starting
 //   with item `(page*limit)` of the search results
 func GetTickets(uri string, user User, qualifier string, limit uint, page uint, ticket *[]Ticket, sslVerify bool) error {
-	req, err := http.NewRequest("GET", uri+urn+"Tickets", nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"Tickets", nil)
 	if err != nil {
 		return err
 	}
@@ -266,7 +322,12 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 	} else {
 		client = &http.Client{}
 	}
-	resp, err := client.Do(req)
+
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return err
@@ -340,7 +401,7 @@ func CreateUpdateTicket(uri string, user User, whdTicket Ticket, sslVerify bool)
 }
 
 func createTicket(uri string, user User, ticketJsonStr []byte, sslVerify bool) (int, error) {
-	req, err := http.NewRequest("POST", uri+urn+"Ticket", bytes.NewBuffer(ticketJsonStr))
+	req, err := retryablehttp.NewRequest("POST", uri+urn+"Ticket", bytes.NewBuffer(ticketJsonStr))
 	if err != nil {
 		return 0, err
 	}
@@ -358,7 +419,11 @@ func createTicket(uri string, user User, ticketJsonStr []byte, sslVerify bool) (
 		client = &http.Client{}
 	}
 
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	//defer resp.Body.Close()
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
@@ -378,7 +443,7 @@ func createTicket(uri string, user User, ticketJsonStr []byte, sslVerify bool) (
 }
 
 func updateTicket(uri string, user User, id int, ticketJsonStr []byte, sslVerify bool) (int, error) {
-	req, err := http.NewRequest("PUT", uri+urn+"Ticket/"+strconv.Itoa(id), bytes.NewBuffer(ticketJsonStr))
+	req, err := retryablehttp.NewRequest("PUT", uri+urn+"Ticket/"+strconv.Itoa(id), bytes.NewBuffer(ticketJsonStr))
 	if err != nil {
 		return 0, err
 	}
@@ -396,7 +461,11 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte, sslVerify
 		client = &http.Client{}
 	}
 
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
@@ -415,7 +484,7 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte, sslVerify
 }
 
 func GetAttachment(uri string, user User, attachmentId int, sslVerify bool) ([]byte, error) {
-	req, err := http.NewRequest("GET", uri+urn+"TicketAttachments/"+strconv.Itoa(attachmentId), nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"TicketAttachments/"+strconv.Itoa(attachmentId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -433,7 +502,11 @@ func GetAttachment(uri string, user User, attachmentId int, sslVerify bool) ([]b
 		client = &http.Client{}
 	}
 
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return nil, err
@@ -508,7 +581,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	cookieJar, _ := cookiejar.New(nil)
 
 	// get session key to get JSESSIONID and wosid
-	req, err := http.NewRequest("GET", uri+urn+"Session", nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"Session", nil)
 	if err != nil {
 		return 0, err
 	}
@@ -518,7 +591,11 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	client := &http.Client{
 		Jar: cookieJar,
 	}
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
@@ -611,7 +688,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	//log.Printf("Body: %+v", body)
 	postUrl := fmt.Sprintf("%s/helpdesk/attachment/upload", uri)
 	log.Printf("Sending Attachment POST to: %s", postUrl)
-	req2, err := http.NewRequest("POST", postUrl, body)
+	req2, err := retryablehttp.NewRequest("POST", postUrl, body)
 	if err != nil {
 		return 0, err
 	}
@@ -648,7 +725,11 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 
 	log.Printf("Sending Attachment POST to: %+v", req2.URL)
 
-	resp2, err := client2.Do(req2)
+	retryclient2 := retryablehttp.NewClient()
+	retryclient2.RetryMax = 10
+	retryclient2.HTTPClient = client2
+
+	resp2, err := retryclient2.Do(req2)
 	if err != nil {
 		log.Printf("The HTTP request failed when uploading attachment: %s\n", err)
 		return 0, err

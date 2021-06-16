@@ -8,10 +8,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 func GetAsset(uri string, user User, assetId int, asset *[]Asset, sslVerify bool) error {
-	req, err := http.NewRequest("GET", uri+urn+"Assets", nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"Assets", nil)
 	if err != nil {
 		return err
 	}
@@ -31,7 +33,13 @@ func GetAsset(uri string, user User, assetId int, asset *[]Asset, sslVerify bool
 	} else {
 		client = &http.Client{}
 	}
-	resp, err := client.Do(req)
+
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
+
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return err
@@ -49,7 +57,7 @@ func GetAsset(uri string, user User, assetId int, asset *[]Asset, sslVerify bool
 }
 
 func GetAssets(uri string, user User, qualifier string, limit uint, page uint, asset *[]Asset, sslVerify bool) error {
-	req, err := http.NewRequest("GET", uri+urn+"Assets", nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"Assets", nil)
 	if err != nil {
 		return err
 	}
@@ -81,7 +89,12 @@ func GetAssets(uri string, user User, qualifier string, limit uint, page uint, a
 	} else {
 		client = &http.Client{}
 	}
-	resp, err := client.Do(req)
+
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return err

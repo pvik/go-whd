@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 const urn string = "/helpdesk/WebObjects/Helpdesk.woa/ra/"
@@ -24,7 +25,7 @@ type User struct {
 	Type authType
 }
 
-func WrapAuth(req *http.Request, user User) {
+func WrapAuth(req *retryablehttp.Request, user User) {
 
 	q := req.URL.Query()
 
@@ -43,15 +44,17 @@ func WrapAuth(req *http.Request, user User) {
 }
 
 func GetSessionKey(uri string, user User) (string, error) {
-	req, err := http.NewRequest("GET", uri+urn+"Session", nil)
+	req, err := retryablehttp.NewRequest("GET", uri+urn+"Session", nil)
 	if err != nil {
 		return "", err
 	}
 
 	WrapAuth(req, user)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return "", err
@@ -75,7 +78,7 @@ func GetSessionKey(uri string, user User) (string, error) {
 }
 
 func TerminateSession(uri string, sessionKey string) error {
-	req, err := http.NewRequest("DELETE", uri+urn+"Session", nil)
+	req, err := retryablehttp.NewRequest("DELETE", uri+urn+"Session", nil)
 	if err != nil {
 		return err
 	}
@@ -84,8 +87,10 @@ func TerminateSession(uri string, sessionKey string) error {
 	q.Add("sessionKey", sessionKey)
 	req.URL.RawQuery = q.Encode()
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+
+	resp, err := retryclient.Do(req)
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return err
