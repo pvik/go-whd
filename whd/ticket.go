@@ -205,7 +205,7 @@ func GetNotes(uri string, user User, ticketID int, notes *[]Note, sslVerify bool
 
 	q := req.URL.Query()
 
-	q.Add("jobTicketID", fmt.Sprintf("%d", ticketID))
+	q.Add("jobTicketId", fmt.Sprintf("%d", ticketID))
 	q.Add("limit", "1000")
 
 	req.URL.RawQuery = q.Encode()
