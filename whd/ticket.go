@@ -371,6 +371,15 @@ func CreateUpdateTicket(uri string, user User, whdTicket Ticket, sslVerify bool)
 		}
 	}
 
+	// remove custom fields with empty value
+	tempCfs := make([]CustomField, 0, 10)
+	for _, cf := range whdTicket.CustomFields {
+		if cf.Value != "" {
+			tempCfs = append(tempCfs, cf)
+		}
+	}
+	whdTicket.CustomFields = tempCfs
+
 	interim, _ := json.Marshal(whdTicket)
 	json.Unmarshal(interim, &whdTicketMap)
 
