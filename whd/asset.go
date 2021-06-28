@@ -3,7 +3,6 @@ package whd
 import (
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,7 +11,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-func GetAsset(uri string, user User, assetId int, asset *[]Asset, sslVerify bool) error {
+func GetAsset(uri string, user User, assetNumber string, asset *[]Asset, sslVerify bool) error {
 	req, err := retryablehttp.NewRequest("GET", uri+urn+"Assets", nil)
 	if err != nil {
 		return err
@@ -21,7 +20,7 @@ func GetAsset(uri string, user User, assetId int, asset *[]Asset, sslVerify bool
 	WrapAuth(req, user)
 
 	q := req.URL.Query()
-	q.Add("assetNumber", fmt.Sprintf("%d", assetId))
+	q.Add("assetNumber", assetNumber)
 	req.URL.RawQuery = q.Encode()
 
 	var client *http.Client
