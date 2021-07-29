@@ -165,9 +165,14 @@ func createNote(uri string, user User, whdTicketId int, note Note, sslVerify boo
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 60,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 60,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
@@ -215,9 +220,14 @@ func GetNotes(uri string, user User, ticketID int, notes *[]Note, sslVerify bool
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 90,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 90,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
@@ -254,9 +264,14 @@ func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) er
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 30,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 60,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
@@ -318,7 +333,10 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 90,
+		}
 	} else {
 		client = &http.Client{}
 	}
@@ -465,9 +483,14 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte, sslVerify
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 90,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 90,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
@@ -506,9 +529,14 @@ func GetAttachment(uri string, user User, attachmentId int, sslVerify bool) ([]b
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 120,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 120,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
@@ -598,7 +626,8 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	WrapAuth(req, user)
 
 	client := &http.Client{
-		Jar: cookieJar,
+		Timeout: time.Second * 30,
+		Jar:     cookieJar,
 	}
 	retryclient := retryablehttp.NewClient()
 	retryclient.RetryMax = 10
@@ -703,7 +732,8 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	}
 	cookieJar.SetCookies(req2.URL, cookies)
 	client2 := &http.Client{
-		Jar: cookieJar,
+		Jar:     cookieJar,
+		Timeout: time.Second * 120,
 	}
 
 	req2.Header.Set("User-Agent", "Java/1.7.0_55")

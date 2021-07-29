@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 )
@@ -34,9 +35,14 @@ func GetLocation(uri string, user User, id int, location *Location, sslVerify bo
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 30,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 30,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
@@ -253,9 +259,14 @@ func getResourceListPage(uri string, user User, resource string, limit int, page
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 120,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 120,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()

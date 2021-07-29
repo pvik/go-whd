@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 )
@@ -28,9 +29,14 @@ func GetAsset(uri string, user User, assetNumber string, asset *[]Asset, sslVeri
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 30,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 30,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
@@ -84,9 +90,14 @@ func GetAssets(uri string, user User, qualifier string, limit uint, page uint, a
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client = &http.Client{Transport: tr}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 30,
+		}
 	} else {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Second * 30,
+		}
 	}
 
 	retryclient := retryablehttp.NewClient()
