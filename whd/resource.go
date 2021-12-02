@@ -1,8 +1,10 @@
 package whd
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -64,6 +66,122 @@ func GetLocation(uri string, user User, id int, location *Location, sslVerify bo
 	}
 
 	return nil
+}
+
+func CreateUpdateLocation(uri string, user User, whdLocation Location, sslVerify bool) (int, error) {
+	whdLocationMap := make(map[string]interface{})
+
+	// remove custom fields with empty value
+	tempCfs := make([]CustomField, 0, 10)
+	for _, cf := range whdLocation.CustomFields {
+		if cf.Value != "" {
+			tempCfs = append(tempCfs, cf)
+		}
+	}
+	whdLocation.CustomFields = tempCfs
+
+	interim, _ := json.Marshal(whdLocation)
+	json.Unmarshal(interim, &whdLocationMap)
+
+	delete(whdLocationMap, "lastUpdated")
+	whdLocationMap["customFields"] = whdLocationMap["locationCustomFields"]
+	delete(whdLocationMap, "locationCustomFields")
+
+	locationJsonStr, _ := json.Marshal(whdLocationMap)
+	log.Printf("JSON Sent to WHD: %s", locationJsonStr)
+	if whdLocation.Id == 0 {
+		return createLocation(uri, user, []byte(locationJsonStr), sslVerify)
+	} else {
+		return updateTicket(uri, user, whdLocation.Id, []byte(locationJsonStr), sslVerify)
+	}
+}
+
+func createLocation(uri string, user User, locationJsonStr []byte, sslVerify bool) (int, error) {
+	req, err := retryablehttp.NewRequest("POST", uri+urn+"Locations", bytes.NewBuffer(locationJsonStr))
+	if err != nil {
+		return 0, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	WrapAuth(req, user)
+
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
+	} else {
+		client = &http.Client{}
+	}
+
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
+	//defer resp.Body.Close()
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	data, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Data:", string(data))
+	var location Location
+	if err = json.Unmarshal(data, &location); err != nil {
+		log.Printf("error unmarshalling: %s\n%s", string(data), err)
+		return 0, fmt.Errorf("Error: %v\n", string(data))
+	}
+
+	return location.Id, nil
+}
+
+func updateLocation(uri string, user User, id int, locationJsonStr []byte, sslVerify bool) (int, error) {
+	req, err := retryablehttp.NewRequest("PUT", uri+urn+"Locations/"+strconv.Itoa(id), bytes.NewBuffer(locationJsonStr))
+	if err != nil {
+		return 0, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	WrapAuth(req, user)
+
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 90,
+		}
+	} else {
+		client = &http.Client{
+			Timeout: time.Second * 90,
+		}
+	}
+
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	data, _ := ioutil.ReadAll(resp.Body)
+
+	var location Location
+	if err = json.Unmarshal(data, &location); err != nil {
+		log.Printf("error unmarshalling: %s\n%s", string(data), err)
+		return 0, fmt.Errorf("Error: %v\n", string(data))
+	}
+
+	return location.Id, nil
 }
 
 func GetRequestTypeList(uri string, user User, result map[int]RequestType, sslVerify bool) error {
