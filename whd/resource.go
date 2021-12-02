@@ -71,6 +71,24 @@ func GetLocation(uri string, user User, id int, location *Location, sslVerify bo
 func CreateUpdateLocation(uri string, user User, whdLocation Location, sslVerify bool) (int, error) {
 	whdLocationMap := make(map[string]interface{})
 
+	if whdLocation.Id != 0 {
+		var whdLocCache Location
+		GetLocation(uri, user, whdLocation.Id, &whdLocCache, sslVerify)
+		// compare custom fields
+		for _, cf := range whdLocCache.CustomFields {
+			cfFound := false
+			for _, ncf := range whdLocation.CustomFields {
+				if cf.Id == ncf.Id {
+					cfFound = true
+					break
+				}
+			}
+			if !cfFound {
+				whdLocation.CustomFields = append(whdLocation.CustomFields, cf)
+			}
+		}
+	}
+
 	// remove custom fields with empty value
 	tempCfs := make([]CustomField, 0, 10)
 	for _, cf := range whdLocation.CustomFields {
