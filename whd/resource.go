@@ -110,7 +110,7 @@ func CreateUpdateLocation(uri string, user User, whdLocation Location, sslVerify
 	if whdLocation.Id == 0 {
 		return createLocation(uri, user, []byte(locationJsonStr), sslVerify)
 	} else {
-		return updateTicket(uri, user, whdLocation.Id, []byte(locationJsonStr), sslVerify)
+		return updateLocation(uri, user, whdLocation.Id, []byte(locationJsonStr), sslVerify)
 	}
 }
 
