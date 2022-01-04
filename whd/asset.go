@@ -3,6 +3,7 @@ package whd
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,6 +24,53 @@ func GetAsset(uri string, user User, assetNumber string, asset *[]Asset, sslVeri
 	q := req.URL.Query()
 	q.Add("assetNumber", assetNumber)
 	req.URL.RawQuery = q.Encode()
+
+	var client *http.Client
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{
+			Transport: tr,
+			Timeout:   time.Second * 30,
+		}
+	} else {
+		client = &http.Client{
+			Timeout: time.Second * 30,
+		}
+	}
+
+	retryclient := retryablehttp.NewClient()
+	retryclient.RetryMax = 10
+	retryclient.HTTPClient = client
+
+	resp, err := retryclient.Do(req)
+
+	if err != nil {
+		log.Printf("The HTTP request failed with error %s\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	data, _ := ioutil.ReadAll(resp.Body)
+
+	if err = json.Unmarshal(data, &asset); err != nil {
+		log.Printf("error unmarshalling: %s | %s", err, data)
+		return err
+	}
+
+	return nil
+}
+
+func GetAssetByID(uri string, user User, assetID int, asset *[]Asset, sslVerify bool) error {
+	req, err := retryablehttp.NewRequest("GET",
+		fmt.Sprintf("%s%sAssets/%d", uri, urn, assetID),
+		nil)
+	if err != nil {
+		return err
+	}
+
+	WrapAuth(req, user)
 
 	var client *http.Client
 	if !sslVerify {
