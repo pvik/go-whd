@@ -564,15 +564,15 @@ func GetAttachmentAsBase64(uri string, user User, attachmentId int, sslVerify bo
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
-func UploadAttachment(uri string, user User, ticketId int, filename string, filedata []byte) (int, error) {
-	return UploadAttachmentToEntity(uri, user, "jobTicket", ticketId, filename, filedata)
+func UploadAttachment(uri string, user User, ticketId int, filename string, filedata []byte, sslVerify bool) (int, error) {
+	return UploadAttachmentToEntity(uri, user, "jobTicket", ticketId, filename, filedata, sslVerify)
 }
 
-func UploadAttachmentToNote(uri string, user User, noteId int, filename string, filedata []byte) (int, error) {
-	return UploadAttachmentToEntity(uri, user, "techNote", noteId, filename, filedata)
+func UploadAttachmentToNote(uri string, user User, noteId int, filename string, filedata []byte, sslVerify bool) (int, error) {
+	return UploadAttachmentToEntity(uri, user, "techNote", noteId, filename, filedata, sslVerify)
 }
 
-func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename string, fullFilePath string, deleteFileAfter bool) (int, error) {
+func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename string, fullFilePath string, deleteFileAfter bool, sslVerify bool) (int, error) {
 	// read in file
 	filedata, err := ioutil.ReadFile(fullFilePath)
 
@@ -580,7 +580,7 @@ func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename 
 		return 0, fmt.Errorf("unable to read PDF file: %+v", err)
 	}
 
-	attId, err := UploadAttachmentToNote(uri, user, noteId, filename, filedata)
+	attId, err := UploadAttachmentToNote(uri, user, noteId, filename, filedata, sslVerify)
 
 	if err != nil {
 		return 0, err
@@ -593,7 +593,7 @@ func UploadAttachmentToNoteFromFile(uri string, user User, noteId int, filename 
 	return attId, nil
 }
 
-func UploadAttachmentToTicketFromFile(uri string, user User, ticketId int, filename string, fullFilePath string, deleteFileAfter bool) (int, error) {
+func UploadAttachmentToTicketFromFile(uri string, user User, ticketId int, filename string, fullFilePath string, deleteFileAfter bool, sslVerify bool) (int, error) {
 	// read in file
 	filedata, err := ioutil.ReadFile(fullFilePath)
 
@@ -601,7 +601,7 @@ func UploadAttachmentToTicketFromFile(uri string, user User, ticketId int, filen
 		return 0, fmt.Errorf("unable to read PDF file: %+v", err)
 	}
 
-	attId, err := UploadAttachment(uri, user, ticketId, filename, filedata)
+	attId, err := UploadAttachment(uri, user, ticketId, filename, filedata, sslVerify)
 
 	if err != nil {
 		return 0, err
@@ -614,7 +614,7 @@ func UploadAttachmentToTicketFromFile(uri string, user User, ticketId int, filen
 	return attId, nil
 }
 
-func UploadAttachmentToEntity(uri string, user User, entity string, entityId int, filename string, filedata []byte) (int, error) {
+func UploadAttachmentToEntity(uri string, user User, entity string, entityId int, filename string, filedata []byte, sslVerify bool) (int, error) {
 	cookieJar, _ := cookiejar.New(nil)
 
 	// get session key to get JSESSIONID and wosid
@@ -629,6 +629,14 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 		Timeout: time.Second * 30,
 		Jar:     cookieJar,
 	}
+
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+
 	retryclient := retryablehttp.NewClient()
 	retryclient.RetryMax = 10
 	retryclient.HTTPClient = client
@@ -734,6 +742,13 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	client2 := &http.Client{
 		Jar:     cookieJar,
 		Timeout: time.Second * 120,
+	}
+
+	if !sslVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client2.Transport = tr
 	}
 
 	req2.Header.Set("User-Agent", "Java/1.7.0_55")
