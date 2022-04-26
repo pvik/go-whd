@@ -62,7 +62,7 @@ func GetAsset(uri string, user User, assetNumber string, asset *[]Asset, sslVeri
 	return nil
 }
 
-func GetAssetByID(uri string, user User, assetID int, asset *[]Asset, sslVerify bool) error {
+func GetAssetByID(uri string, user User, assetID int, asset *Asset, sslVerify bool) error {
 	req, err := retryablehttp.NewRequest("GET",
 		fmt.Sprintf("%s%sAssets/%d", uri, urn, assetID),
 		nil)
