@@ -20,8 +20,6 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-var RETRY_MAX = 10
-
 type ProblemType struct {
 	Id   int    `json:"id"`
 	Type string `json:"type"`
