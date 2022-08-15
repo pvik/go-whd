@@ -20,6 +20,8 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
+var RETRY_MAX = 10
+
 type ProblemType struct {
 	Id   int    `json:"id"`
 	Type string `json:"type"`
@@ -176,7 +178,7 @@ func createNote(uri string, user User, whdTicketId int, note Note, sslVerify boo
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -231,7 +233,7 @@ func GetNotes(uri string, user User, ticketID int, notes *[]Note, sslVerify bool
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -275,7 +277,7 @@ func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) er
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -342,7 +344,7 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -447,7 +449,7 @@ func createTicket(uri string, user User, ticketJsonStr []byte, sslVerify bool) (
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -494,7 +496,7 @@ func updateTicket(uri string, user User, id int, ticketJsonStr []byte, sslVerify
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -540,7 +542,7 @@ func GetAttachment(uri string, user User, attachmentId int, sslVerify bool) ([]b
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -638,7 +640,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)

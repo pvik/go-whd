@@ -41,7 +41,7 @@ func GetAsset(uri string, user User, assetNumber string, asset *[]Asset, sslVeri
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -88,7 +88,7 @@ func GetAssetByID(uri string, user User, assetID int, asset *Asset, sslVerify bo
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)
@@ -149,7 +149,7 @@ func GetAssets(uri string, user User, qualifier string, limit uint, page uint, a
 	}
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 	retryclient.HTTPClient = client
 
 	resp, err := retryclient.Do(req)

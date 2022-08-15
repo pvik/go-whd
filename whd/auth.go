@@ -52,7 +52,7 @@ func GetSessionKey(uri string, user User) (string, error) {
 	WrapAuth(req, user)
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 
 	resp, err := retryclient.Do(req)
 	if err != nil {
@@ -88,7 +88,7 @@ func TerminateSession(uri string, sessionKey string) error {
 	req.URL.RawQuery = q.Encode()
 
 	retryclient := retryablehttp.NewClient()
-	retryclient.RetryMax = 10
+	retryclient.RetryMax = RETRY_MAX
 
 	resp, err := retryclient.Do(req)
 	if err != nil {
