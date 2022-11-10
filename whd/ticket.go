@@ -244,7 +244,7 @@ func GetNotes(uri string, user User, ticketID int, notes *[]Note, sslVerify bool
 	data, _ := ioutil.ReadAll(resp.Body)
 
 	if err = json.Unmarshal(data, &notes); err != nil {
-		log.Println("Invalid JSON from WHD: ", data)
+		log.Printf("Invalid JSON from WHD: %s\n", data)
 		return fmt.Errorf("Invalid JSON from WHD: %s", data)
 	}
 
@@ -288,7 +288,7 @@ func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) er
 	data, _ := ioutil.ReadAll(resp.Body)
 
 	if err = json.Unmarshal(data, &ticket); err != nil {
-		log.Println("Invalid JSON from WHD: ", data)
+		log.Printf("Invalid JSON from WHD: %s\n", data)
 		return fmt.Errorf("Invalid JSON from WHD: %s", data)
 	}
 
@@ -355,7 +355,7 @@ func GetTickets(uri string, user User, qualifier string, limit uint, page uint, 
 	data, _ := ioutil.ReadAll(resp.Body)
 
 	if err = json.Unmarshal(data, &ticket); err != nil {
-		log.Println("Invalid JSON from WHD: ", data)
+		log.Printf("Invalid JSON from WHD: %s\n", data)
 		return fmt.Errorf("Invalid JSON from WHD: %s", data)
 	}
 
