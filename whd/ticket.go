@@ -780,7 +780,7 @@ func UploadAttachmentToEntity(uri string, user User, entity string, entityId int
 	log.Printf("Sending Attachment POST to: %+v", req2.URL)
 
 	retryclient2 := retryablehttp.NewClient()
-	retryclient2.RetryMax = 10
+	retryclient2.RetryMax = RETRY_MAX
 	retryclient2.HTTPClient = client2
 
 	resp2, err := retryclient2.Do(req2)
