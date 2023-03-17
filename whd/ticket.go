@@ -456,15 +456,14 @@ func createTicket(uri string, user User, ticketJsonStr []byte, sslVerify bool) (
 
 	resp, err := retryclient.Do(req)
 	//defer resp.Body.Close()
-
-	defer resp.Body.Close()
-	data, _ := ioutil.ReadAll(resp.Body)
-	log.Println("Data:", string(data))
-
 	if err != nil {
 		log.Printf("The HTTP request failed with error %s\n", err)
 		return 0, err
 	}
+
+	defer resp.Body.Close()
+	data, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Data:", string(data))
 
 	var ticket Ticket
 	if err = json.Unmarshal(data, &ticket); err != nil {
