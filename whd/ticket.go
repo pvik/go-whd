@@ -52,11 +52,13 @@ type Asset struct {
 type PriorityType struct {
 	Id   int    `json:"id,omitempty"`
 	Type string `json:"type,omitempty"`
+	Name string `json:"priorityTypeName,omitempty"`
 }
 
 type StatusType struct {
 	Id   int    `json:"id,omitempty"`
 	Type string `json:"type,omitempty"`
+	Name string `json:"statusTypeName,omitempty"`
 }
 
 type CustomField struct {
@@ -298,12 +300,14 @@ func GetTicket(uri string, user User, id int, ticket *Ticket, sslVerify bool) er
 // GetTickets allows you to query WHD for a list of tickets which matches
 // a qualifier
 // sample qualifier:
-//  - all tickets including deleted: ((deleted %3D null) or (deleted %3D 0) or (deleted %3D 1))
-//  - tickets in location ATL (location.locationName %3D 'ATL')
-//  - tickets in stauts New (statustype.statusTypeName %3D 'Open')
+//   - all tickets including deleted: ((deleted %3D null) or (deleted %3D 0) or (deleted %3D 1))
+//   - tickets in location ATL (location.locationName %3D 'ATL')
+//   - tickets in stauts New (statustype.statusTypeName %3D 'Open')
+//
 // limit - limits the number of tickets returned, default is 25, max value is 100
 // page  - Page of results to retrieve. Returns `limit` number of items, starting
-//   with item `(page*limit)` of the search results
+//
+//	with item `(page*limit)` of the search results
 func GetTickets(uri string, user User, qualifier string, limit uint, page uint, ticket *[]Ticket, sslVerify bool) error {
 	req, err := retryablehttp.NewRequest("GET", uri+urn+"Tickets", nil)
 	if err != nil {
